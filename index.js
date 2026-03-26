@@ -1,7 +1,7 @@
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
-const { Client, GatewayIntentBits, Partials, EmbedBuilder, Collection } = require('discord.js');
+const { Client, GatewayIntentBits, Partials, Collection } = require('discord.js');
 const messageCreateEvent = require('./events/messageCreate');
 const { REST, Routes } = require('discord.js');
 
@@ -10,7 +10,6 @@ const client = new Client({
     partials: [Partials.Channel],
 });
 
-const logsCommand = require('./commands/slash/logs');
 const configStore = require('./configStore');
 
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
@@ -25,7 +24,6 @@ client.slashCommands = new Collection();
 const commandStatusFile = path.join(__dirname, 'data', 'commandStatus.json');
 let commandStatus = {};
 
-let loggingChannelId = configStore.get('loggingChannelId') || null;
 let liveStatusChannelId = configStore.get('liveStatusChannelId') || null;
 
 // Load command status from file
@@ -91,20 +89,6 @@ client.once('ready', async () => {
     messageCreateEvent(client);
 });
 
-function createLogEmbedForPrefixCommand(message, command, args) {
-    const embed = new EmbedBuilder()
-        .setTitle('Command Usage Log (Prefix Command)')
-        .setColor(0x0099FF)
-        .addFields(
-            { name: 'User', value: `${message.author.tag} (${message.author.id})`, inline: true },
-            { name: 'Command', value: command.name, inline: true },
-            { name: 'Arguments', value: args.length > 0 ? args.join(' ') : 'None', inline: false },
-            { name: 'Guild', value: message.guild ? `${message.guild.name} (${message.guild.id})` : 'DM', inline: true },
-            { name: 'Channel', value: message.channel ? `${message.channel.name} (${message.channel.id})` : 'DM', inline: true },
-            { name: 'Timestamp', value: `<t:${Math.floor(Date.now() / 1000)}:F>`, inline: false }
-        );
-    return embed;
-}
 
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
@@ -153,37 +137,12 @@ client.on('messageCreate', async (message) => {
 
     try {
         await command.execute(message, args);
-        // Send command usage log if logging channel is set
-        const logChannelId = loggingChannelId || logsCommand.getLoggingChannelId();
-        if (logChannelId) {
-            const logChannel = message.guild.channels.cache.get(logChannelId);
-            if (logChannel) {
-                const embed = createLogEmbedForPrefixCommand(message, command, args);
-                logChannel.send({ embeds: [embed] });
-            }
-        }
     } catch (error) {
         console.error(`Error executing prefix command ${commandName}:`, error);
         message.channel.send('An error occurred while executing the command.');
     }
 });
 
-function createLogEmbedForSlashCommand(interaction, command) {
-    const options = interaction.options.data.map(opt => `${opt.name}: ${opt.value}`).join('\n') || 'None';
-
-    const embed = new EmbedBuilder()
-        .setTitle('Command Usage Log (Slash Command)')
-        .setColor(0x0099FF)
-        .addFields(
-            { name: 'User', value: `${interaction.user.tag} (${interaction.user.id})`, inline: true },
-            { name: 'Command', value: command.data.name, inline: true },
-            { name: 'Options', value: options, inline: false },
-            { name: 'Guild', value: interaction.guild ? `${interaction.guild.name} (${interaction.guild.id})` : 'DM', inline: true },
-            { name: 'Channel', value: interaction.channel ? `${interaction.channel.name} (${interaction.channel.id})` : 'DM', inline: true },
-            { name: 'Timestamp', value: `<t:${Math.floor(Date.now() / 1000)}:F>`, inline: false }
-        );
-    return embed;
-}
 
 client.on('interactionCreate', async interaction => {
     if (!interaction.isChatInputCommand()) return;
@@ -227,15 +186,6 @@ client.on('interactionCreate', async interaction => {
     try {
         await interaction.deferReply();
         await command.execute(interaction);
-        // Send command usage log if logging channel is set
-        const logChannelId = loggingChannelId || logsCommand.getLoggingChannelId();
-        if (logChannelId && interaction.guild) {
-            const logChannel = interaction.guild.channels.cache.get(logChannelId);
-            if (logChannel) {
-                const embed = createLogEmbedForSlashCommand(interaction, command);
-                logChannel.send({ embeds: [embed] });
-            }
-        }
     } catch (error) {
         console.error(`Error executing slash command ${interaction.commandName}:`, error);
         if (!interaction.replied && !interaction.deferred) {
