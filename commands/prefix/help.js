@@ -8,44 +8,44 @@ module.exports = {
             .setAuthor({ name: '📚 Command Guide', iconURL: message.client.user.displayAvatarURL() })
             .setTitle('Available Bot Commands')
             .setColor(0x5865F2)
-            .setDescription('Use `/command` or `!command` to execute commands')
+            .setDescription('Use `/command` or `k!command` to execute commands')
             .addFields(
                 { 
                     name: '🛡️ Moderation Commands', 
                     value: '```css\n' +
-                           '!ban • !unban • !kick • !timeout\n' +
-                           '!purge • !purgeuser • !slowmode\n' +
-                           '!lock • !unlock\n' +
+                           'k!ban • k!unban • k!kick • k!timeout\n' +
+                           'k!purge • k!purgeuser • k!slowmode\n' +
+                           'k!lock • k!unlock\n' +
                            '```',
                     inline: false 
                 },
                 { 
                     name: '🔧 Utility Commands', 
                     value: '```css\n' +
-                           '!help • !ping • !avatar • !userinfo\n' +
-                           '!serverinfo • !botinfo • !roleinfo\n' +
-                           '!leaderboard • !invite\n' +
+                           'k!help • k!ping • k!avatar • k!userinfo\n' +
+                           'k!serverinfo • k!botinfo • k!roleinfo\n' +
+                           'k!leaderboard • k!invite\n' +
                            '```',
                     inline: false 
                 },
                 { 
                     name: '⚙️ Admin Commands', 
                     value: '```css\n' +
-                           '!announce • !say • !command\n' +
+                           'k!announce • k!say • k!command\n' +
                            '```',
                     inline: false 
                 },
                 { 
                     name: '🎮 Fun Commands', 
                     value: '```css\n' +
-                           '!8ball • !coinflip • !roll • !poll\n' +
+                           'k!8ball • k!coinflip • k!roll • k!poll\n' +
                            '```',
                     inline: false 
                 },
                 { 
                     name: '🎉 Giveaway Commands', 
                     value: '```css\n' +
-                           '!giveaway\n' +
+                           'k!giveaway\n' +
                            '```',
                     inline: false 
                 }

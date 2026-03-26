@@ -80,16 +80,16 @@ Users with `ADMIN_ROLE_IDS` have access to all commands.
 
 ### Prefix Commands (!)
 ```bash
-!ban @user Spamming
-!kick @user Breaking rules
-!timeout @user 10m Inappropriate behavior
-!purge 50
-!announce #general Important announcement
-!help
-!ping
-!avatar @user
-!userinfo @user
-!serverinfo
+k!ban @user Spamming
+k!kick @user Breaking rules
+k!timeout @user 10m Inappropriate behavior
+k!purge 50
+k!announce #general Important announcement
+k!help
+k!ping
+k!avatar @user
+k!userinfo @user
+k!serverinfo
 ```
 
 ### Slash Commands (/)
@@ -153,8 +153,8 @@ Users with `ADMIN_ROLE_IDS` have access to all commands.
 
 Disable/enable commands per server:
 ```bash
-!command disable ban
-!command enable ban
+k!command disable ban
+k!command enable ban
 ```
 
 ### Logging Channel

@@ -3,28 +3,28 @@
 ## 🛡️ Moderation Commands
 | Command | Prefix | Slash | Description |
 |---------|--------|-------|-------------|
-| Ban | `!ban <@user\|ID> [reason]` | `/ban <user> [reason]` | Ban a user from the server |
+| Ban | `k!ban <@user\|ID> [reason]` | `/ban <user> [reason]` | Ban a user from the server |
 | Unban | `!unban <userID> [reason]` | `/unban <userid> [reason]` | Unban a user from the server |
-| Kick | `!kick <@user\|ID> [reason]` | `/kick <user> [reason]` | Kick a user from the server |
-| Timeout | `!timeout <@user\|ID> <duration> [reason]` | `/timeout <user> <duration> [reason]` | Timeout a user (duration: 10s, 5m, 1h, 1d) |
-| Purge | `!purge <amount>` | `/purge <amount>` | Delete multiple messages |
+| Kick | `k!kick <@user\|ID> [reason]` | `/kick <user> [reason]` | Kick a user from the server |
+| Timeout | `k!timeout <@user\|ID> <duration> [reason]` | `/timeout <user> <duration> [reason]` | Timeout a user (duration: 10s, 5m, 1h, 1d) |
+| Purge | `k!purge <amount>` | `/purge <amount>` | Delete multiple messages |
 | Purge User | `!purgeuser <@user\|ID> <amount>` | `/purgeuser <user> <amount>` | Delete messages from specific user |
 
 ## 🔧 Utility Commands
 | Command | Prefix | Slash | Description |
 |---------|--------|-------|-------------|
-| Help | `!help` | `/help` | Show all available commands |
-| Ping | `!ping` | `/ping` | Check bot and API latency |
-| Avatar | `!avatar [@user]` | `/avatar [user]` | Display user's avatar |
-| User Info | `!userinfo [@user]` | `/userinfo [user]` | Show detailed user information |
-| Server Info | `!serverinfo` | `/serverinfo` | Show server statistics |
+| Help | `k!help` | `/help` | Show all available commands |
+| Ping | `k!ping` | `/ping` | Check bot and API latency |
+| Avatar | `k!avatar [@user]` | `/avatar [user]` | Display user's avatar |
+| User Info | `k!userinfo [@user]` | `/userinfo [user]` | Show detailed user information |
+| Server Info | `k!serverinfo` | `/serverinfo` | Show server statistics |
 | Leaderboard | `!leaderboard` | `/leaderboard` | Show XP leaderboard |
 
 ## ⚙️ Admin Commands
 | Command | Prefix | Slash | Description |
 |---------|--------|-------|-------------|
-| Announce | `!announce <#channel\|ID> <message>` | `/announce <channel> <message>` | Send announcement to channel |
-| Command Toggle | `!command <enable\|disable> <command>` | `/command <action> <command>` | Enable or disable commands |
+| Announce | `k!announce <#channel\|ID> <message>` | `/announce <channel> <message>` | Send announcement to channel |
+| Command Toggle | `k!command <enable\|disable> <command>` | `/command <action> <command>` | Enable or disable commands |
 | Set Log Channel | N/A | `/logs <channel>` | Set the logging channel |
 
 ## 🎉 Giveaway Commands

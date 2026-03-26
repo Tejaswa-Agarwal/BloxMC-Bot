@@ -109,7 +109,7 @@ function createLogEmbedForPrefixCommand(message, command, args) {
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
 
-    const prefix = '!';
+    const prefix = 'k!';
     if (!message.content.startsWith(prefix)) return;
 
     const args = message.content.slice(prefix.length).trim().split(/ +/);

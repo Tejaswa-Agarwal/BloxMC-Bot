@@ -9,7 +9,7 @@ module.exports = {
             .setAuthor({ name: '📚 Command Guide', iconURL: interaction.client.user.displayAvatarURL() })
             .setTitle('Available Bot Commands')
             .setColor(0x5865F2)
-            .setDescription('Use `/command` or `!command` to execute commands')
+            .setDescription('Use `/command` or `k!command` to execute commands')
             .addFields(
                 { 
                     name: '🛡️ Moderation Commands', 
