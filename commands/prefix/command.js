@@ -43,14 +43,14 @@ function saveModuleStatus() {
 module.exports = {
     name: 'command',
     description: 'Enable or disable bot commands and modules',
-    usage: '!command <enable|disable> <commandName|moduleName>',
+    usage: '!command <enable|disable> <commandName>',
     async execute(message, args) {
-        if (!message.member.permissions.has('ADMINISTRATOR')) {
+        if (!message.member.permissions.has('Administrator')) {
             return message.reply('You do not have permission to use this command.');
         }
 
         if (args.length < 2) {
-            return message.reply('Usage: !command <enable|disable> <commandName|moduleName>');
+            return message.reply('Usage: !command <enable|disable> <commandName>');
         }
 
         const action = args[0].toLowerCase();
@@ -66,11 +66,11 @@ module.exports = {
         if (name === 'automod' || name === 'leveling') {
             moduleStatus[name] = (action === 'enable');
             saveModuleStatus();
-            message.reply(`Module "${name}" has been ${action}d.`);
+            message.reply(`✅ Module "${name}" has been ${action}d.`);
         } else {
             commandStatus[name] = (action === 'enable');
             saveCommandStatus();
-            message.reply(`Command "${name}" has been ${action}d.`);
+            message.reply(`✅ Command "${name}" has been ${action}d.`);
         }
     }
 };

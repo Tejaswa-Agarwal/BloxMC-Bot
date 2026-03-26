@@ -1,7 +1,7 @@
 {
-  "name": "minecraft-discord-bot",
-  "version": "1.0.0",
-  "description": "Discord bot to check Minecraft server status and send commands",
+  "name": "discord-moderation-bot",
+  "version": "2.0.0",
+  "description": "Discord moderation and utility bot with giveaways, logging, and automod",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
@@ -9,8 +9,7 @@
   "dependencies": {
     "canvas": "^3.1.0",
     "discord.js": "^14.20.0",
-    "dotenv": "^16.5.0",
-    "minecraft-server-util": "^5.4.4"
+    "dotenv": "^16.5.0"
   },
   "engines": {
     "node": ">=16.9.0"

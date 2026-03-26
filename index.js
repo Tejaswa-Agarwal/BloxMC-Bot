@@ -3,7 +3,6 @@ const fs = require('fs');
 const path = require('path');
 const { Client, GatewayIntentBits, Partials, EmbedBuilder, Collection } = require('discord.js');
 const messageCreateEvent = require('./events/messageCreate');
-const { status, RCON } = require('minecraft-server-util');
 const { REST, Routes } = require('discord.js');
 
 const client = new Client({
@@ -15,41 +14,10 @@ const logsCommand = require('./commands/slash/logs');
 const configStore = require('./configStore');
 
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
-const MINECRAFT_SERVER_HOST = process.env.MINECRAFT_SERVER_HOST || '172.96.140.162';
-const MINECRAFT_SERVER_PORT = parseInt(process.env.MINECRAFT_SERVER_PORT) || 25565;
 
-const serversRconConfig = {
-    
-    lifesteal: {
-        host: '172.96.140.162',
-        port: 25585,
-        password: 'blox',
-    },
-    survival: {
-        host: '104.194.8.43',
-        port: 25590,
-        password: 'blox',
-    },
-    // Add other servers here as needed
-};
-
-const serversStatusConfig = {
-    lifesteal: {
-        host: '172.96.140.162',
-        port: 25565, // Minecraft server port for status query
-    },
-    survival: {
-        host: '104.194.8.43',
-        port: 25565, // Minecraft server port for status query
-    },
-    // Add other servers here as needed
-};
-
-const liveStatusIntervalRef = { current: null };
-
-const DISCORD_GUILD_ID = '1190963399773921290'; // Restrict commands to this guild ID
 const ALLOWED_ROLE_IDS = (process.env.ALLOWED_ROLE_IDS || '').split(',').map(r => r.trim()).filter(r => r.length > 0);
-const BAN_UNBAN_KICK_ROLE_ID = '1368108575725064192'; // New role ID for ban, unban, kick commands
+const MODERATOR_ROLE_IDS = (process.env.MODERATOR_ROLE_IDS || '').split(',').map(r => r.trim()).filter(r => r.length > 0);
+const ADMIN_ROLE_IDS = (process.env.ADMIN_ROLE_IDS || '').split(',').map(r => r.trim()).filter(r => r.length > 0);
 
 client.prefixCommands = new Collection();
 client.slashCommands = new Collection();
@@ -86,7 +54,7 @@ fs.readdirSync(prefixCommandsPath).forEach(file => {
 // Load slash commands
 const slashCommands = [];
 fs.readdirSync(slashCommandsPath).forEach(file => {
-    if (file.endsWith('.js') && file !== 'serverinfo.js') {
+    if (file.endsWith('.js')) {
         const command = require(path.join(slashCommandsPath, file));
         client.slashCommands.set(command.data.name, command);
         slashCommands.push(command.data);
@@ -97,13 +65,9 @@ const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
 
 async function registerCommands() {
     try {
-        if (!DISCORD_GUILD_ID) {
-            console.log('DISCORD_GUILD_ID not set. Skipping guild command registration.');
-            return;
-        }
-        // Register new commands
+        // Register commands globally
         await rest.put(
-            Routes.applicationGuildCommands(client.user.id, DISCORD_GUILD_ID),
+            Routes.applicationCommands(client.user.id),
             { body: slashCommands.map(cmd => cmd.toJSON ? cmd.toJSON() : cmd) },
         );
         console.log('Successfully registered slash commands.');
@@ -126,18 +90,6 @@ client.once('ready', async () => {
     // Register messageCreate event for automod
     messageCreateEvent(client);
 });
-
-function createStatusEmbed(result) {
-    const embed = new EmbedBuilder()
-        .setTitle('Minecraft Server Status')
-        .setColor(0x00FF00)
-        .addFields(
-            { name: 'Version', value: result.version.name, inline: true },
-            { name: 'Players', value: `${result.players.online}/${result.players.max}`, inline: true },
-            { name: 'MOTD', value: result.motd.clean, inline: false }
-        );
-    return embed;
-}
 
 function createLogEmbedForPrefixCommand(message, command, args) {
     const embed = new EmbedBuilder()
@@ -166,42 +118,41 @@ client.on('messageCreate', async (message) => {
     const command = client.prefixCommands.get(commandName);
     if (!command) return;
 
-    // Restrict prefix commands 'livestatus', 'mccommand', 'giveaway', and new commands to the specified guild and roles
-    const restrictedCommands = ['livestatus', 'mccommand', 'giveaway', 'whitelist', 'ban', 'unban', 'kick', 'broadcast', 'playerlist', 'restart', 'stop'];
-    if (restrictedCommands.includes(commandName)) {
-        if (message.guild?.id !== DISCORD_GUILD_ID) {
-            // Allow only specific user in other servers
-            if (message.author.id !== '1124168034332975204') {
+    // Check permissions based on command category
+    const memberRoles = message.member?.roles.cache;
+    
+    // Moderation commands require moderator role
+    const moderationCommands = ['ban', 'unban', 'kick', 'timeout', 'purge', 'purgeuser'];
+    if (moderationCommands.includes(commandName)) {
+        if (MODERATOR_ROLE_IDS.length > 0 && !MODERATOR_ROLE_IDS.some(roleId => memberRoles?.has(roleId))) {
+            if (ADMIN_ROLE_IDS.length === 0 || !ADMIN_ROLE_IDS.some(roleId => memberRoles?.has(roleId))) {
+                message.channel.send('You do not have permission to use this command.');
                 return;
             }
-        } else {
-            const memberRoles = message.member.roles.cache;
-            if (['ban', 'unban', 'kick'].includes(commandName)) {
-                if (BAN_UNBAN_KICK_ROLE_ID && !memberRoles.has(BAN_UNBAN_KICK_ROLE_ID)) {
-                    message.channel.send('You do not have permission to use this command.');
-                    return;
-                }
-            } else {
-                if (ALLOWED_ROLE_IDS.length > 0 && !ALLOWED_ROLE_IDS.some(roleId => memberRoles.has(roleId))) {
-                    message.channel.send('You do not have permission to use this command.');
-                    return;
-                }
+        }
+    }
+    
+    // Admin commands require admin role
+    const adminCommands = ['announce', 'command'];
+    if (adminCommands.includes(commandName)) {
+        if (ADMIN_ROLE_IDS.length > 0 && !ADMIN_ROLE_IDS.some(roleId => memberRoles?.has(roleId))) {
+            message.channel.send('You do not have permission to use this command.');
+            return;
+        }
+    }
+
+    // Giveaway commands require allowed roles
+    if (commandName === 'giveaway') {
+        if (ALLOWED_ROLE_IDS.length > 0 && !ALLOWED_ROLE_IDS.some(roleId => memberRoles?.has(roleId))) {
+            if (ADMIN_ROLE_IDS.length === 0 || !ADMIN_ROLE_IDS.some(roleId => memberRoles?.has(roleId))) {
+                message.channel.send('You do not have permission to use this command.');
+                return;
             }
         }
     }
 
     try {
-        if (command.name === 'livestatus') {
-            await command.execute(message, args, { host: MINECRAFT_SERVER_HOST, port: MINECRAFT_SERVER_PORT }, liveStatusIntervalRef);
-        } else if (command.name === 'mccommand') {
-            await command.execute(message, args, serversRconConfig);
-        } else if (['whitelist', 'ban', 'unban', 'kick', 'broadcast', 'restart', 'stop'].includes(command.name)) {
-            await command.execute(message, args, serversRconConfig);
-        } else if (['playerlist', 'serverinfo'].includes(command.name)) {
-            await command.execute(message, args, { host: MINECRAFT_SERVER_HOST, port: MINECRAFT_SERVER_PORT });
-        } else {
-            await command.execute(message, args, { host: MINECRAFT_SERVER_HOST, port: MINECRAFT_SERVER_PORT });
-        }
+        await command.execute(message, args);
         // Send command usage log if logging channel is set
         const logChannelId = loggingChannelId || logsCommand.getLoggingChannelId();
         if (logChannelId) {
@@ -240,48 +191,42 @@ client.on('interactionCreate', async interaction => {
     const command = client.slashCommands.get(interaction.commandName);
     if (!command) return;
 
-    // Restrict slash commands 'livestatus', 'mccommand', 'giveaway', and new commands to the specified guild and roles
-    const restrictedCommands = ['livestatus', 'mccommand', 'giveaway', 'whitelist', 'ban', 'unban', 'kick', 'broadcast', 'playerlist', 'restart', 'stop'];
-    if (restrictedCommands.includes(interaction.commandName)) {
-        if (interaction.guildId !== DISCORD_GUILD_ID) {
-            // Allow only specific user in other servers
-            if (interaction.user.id !== '1124168034332975204') {
+    // Check permissions based on command category
+    const memberRoles = interaction.member?.roles;
+    
+    // Moderation commands require moderator role
+    const moderationCommands = ['ban', 'unban', 'kick', 'timeout', 'purge', 'purgeuser'];
+    if (moderationCommands.includes(interaction.commandName)) {
+        if (MODERATOR_ROLE_IDS.length > 0 && !MODERATOR_ROLE_IDS.some(roleId => memberRoles?.cache.has(roleId))) {
+            if (ADMIN_ROLE_IDS.length === 0 || !ADMIN_ROLE_IDS.some(roleId => memberRoles?.cache.has(roleId))) {
+                await interaction.reply({ content: 'You do not have permission to use this command.', ephemeral: true });
                 return;
             }
-        } else {
-            const memberRoles = interaction.member.roles;
-            if (['ban', 'unban', 'kick'].includes(interaction.commandName)) {
-                if (BAN_UNBAN_KICK_ROLE_ID && !memberRoles.cache.has(BAN_UNBAN_KICK_ROLE_ID)) {
-                    await interaction.reply({ content: 'You do not have permission to use this command.', ephemeral: true });
-                    return;
-                }
-            } else {
-                if (ALLOWED_ROLE_IDS.length > 0 && !ALLOWED_ROLE_IDS.some(roleId => memberRoles.cache.has(roleId))) {
-                    await interaction.reply({ content: 'You do not have permission to use this command.', ephemeral: true });
-                    return;
-                }
+        }
+    }
+    
+    // Admin commands require admin role
+    const adminCommands = ['announce', 'command', 'logs'];
+    if (adminCommands.includes(interaction.commandName)) {
+        if (ADMIN_ROLE_IDS.length > 0 && !ADMIN_ROLE_IDS.some(roleId => memberRoles?.cache.has(roleId))) {
+            await interaction.reply({ content: 'You do not have permission to use this command.', ephemeral: true });
+            return;
+        }
+    }
+
+    // Giveaway commands require allowed roles
+    if (interaction.commandName === 'giveaway' || interaction.commandName === 'giveaway-reroll') {
+        if (ALLOWED_ROLE_IDS.length > 0 && !ALLOWED_ROLE_IDS.some(roleId => memberRoles?.cache.has(roleId))) {
+            if (ADMIN_ROLE_IDS.length === 0 || !ADMIN_ROLE_IDS.some(roleId => memberRoles?.cache.has(roleId))) {
+                await interaction.reply({ content: 'You do not have permission to use this command.', ephemeral: true });
+                return;
             }
         }
     }
 
     try {
         await interaction.deferReply();
-        if (command.data.name === 'livestatus') {
-            await command.execute(interaction, { host: MINECRAFT_SERVER_HOST, port: MINECRAFT_SERVER_PORT }, liveStatusIntervalRef);
-        } else if (command.data.name === 'mccommand') {
-            await command.execute(interaction, serversRconConfig);
-        } else if (['whitelist', 'ban', 'unban', 'kick', 'broadcast', 'restart', 'stop'].includes(command.data.name)) {
-            let serverName = interaction.options.getString('server');
-            if (serverName) {
-                serverName = serverName.toLowerCase();
-            }
-            console.log(`Executing slash command ${command.data.name} on server: ${serverName}`);
-            await command.execute(interaction, serversRconConfig, serverName);
-        } else if (['playerlist', 'serverinfo'].includes(command.data.name)) {
-            await command.execute(interaction, serversStatusConfig);
-        } else {
-            await command.execute(interaction, { host: MINECRAFT_SERVER_HOST, port: MINECRAFT_SERVER_PORT });
-        }
+        await command.execute(interaction);
         // Send command usage log if logging channel is set
         const logChannelId = loggingChannelId || logsCommand.getLoggingChannelId();
         if (logChannelId && interaction.guild) {

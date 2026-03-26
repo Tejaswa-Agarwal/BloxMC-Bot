@@ -1,34 +1,30 @@
-const { RCON } = require('minecraft-server-util');
-const serversRconConfig = require('../../config/serversRconConfig');
-
 module.exports = {
     name: 'kick',
-    description: 'Kick a player from the Minecraft server',
+    description: 'Kick a user from the Discord server',
     async execute(message, args) {
-        if (args.length < 2) {
-            message.channel.send('Usage: !kick <server> <playername>');
-            return;
-        }
-        const serverName = args[0].toLowerCase();
-        const playerName = args[1];
-
-        const rconConfig = serversRconConfig[serverName];
-        if (!rconConfig) {
-            message.channel.send(`Server "${serverName}" not found.`);
+        if (!message.guild) {
+            message.channel.send('This command can only be used in a server.');
             return;
         }
 
+        if (args.length < 1) {
+            message.channel.send('Usage: !kick <@user|userID> [reason]');
+            return;
+        }
+
+        const userMention = args[0];
+        const reason = args.slice(1).join(' ') || 'No reason provided';
+
+        // Extract user ID from mention or direct ID
+        const userId = userMention.replace(/[<@!>]/g, '');
+        
         try {
-            const rcon = new RCON(rconConfig.host, rconConfig.port, rconConfig.password, { timeout: 5000 });
-            await rcon.connect();
-
-            await rcon.send(`kick ${playerName}`);
-            message.channel.send(`Player ${playerName} has been kicked on server ${serverName}.`);
-
-            rcon.close();
+            const member = await message.guild.members.fetch(userId);
+            await member.kick(`${reason} | Kicked by ${message.author.tag}`);
+            message.channel.send(`✅ Kicked **${member.user.tag}** (${member.id})\nReason: ${reason}`);
         } catch (error) {
-            console.error('Error kicking player:', error);
-            message.channel.send('Failed to kick player. Is the server online?');
+            console.error('Error kicking user:', error);
+            message.channel.send('Failed to kick user. Make sure I have the Kick Members permission and the user is in the server.');
         }
     }
 };

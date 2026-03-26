@@ -39,10 +39,7 @@ module.exports = {
                 .setRequired(true)),
     async execute(interaction) {
         if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) {
-            if (interaction.replied || interaction.deferred) {
-                return;
-            }
-            return interaction.reply({ content: 'You do not have permission to use this command.', ephemeral: true });
+            return interaction.editReply({ content: 'You do not have permission to use this command.', ephemeral: true });
         }
 
         const action = interaction.options.getString('action');
@@ -50,21 +47,9 @@ module.exports = {
 
         loadCommandStatus();
 
-        if (!['enable', 'disable'].includes(action)) {
-            if (interaction.replied || interaction.deferred) {
-                return;
-            }
-            return interaction.reply({ content: 'Action must be "enable" or "disable".', ephemeral: true });
-        }
-
         commandStatus[cmdName] = (action === 'enable');
-
         saveCommandStatus();
 
-        if (interaction.replied || interaction.deferred) {
-            await interaction.followUp({ content: `Command "${cmdName}" has been ${action}d.`, ephemeral: true });
-        } else {
-            await interaction.reply({ content: `Command "${cmdName}" has been ${action}d.`, ephemeral: true });
-        }
+        await interaction.editReply({ content: `✅ Command "${cmdName}" has been ${action}d.` });
     }
 };

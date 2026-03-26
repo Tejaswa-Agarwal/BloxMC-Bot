@@ -1,34 +1,34 @@
-const { RCON } = require('minecraft-server-util');
-const serversRconConfig = require('../../config/serversRconConfig');
-
 module.exports = {
     name: 'unban',
-    description: 'Unban a player from the Minecraft server',
+    description: 'Unban a user from the Discord server',
     async execute(message, args) {
-        if (args.length < 2) {
-            message.channel.send('Usage: !unban <server> <playername>');
+        if (!message.guild) {
+            message.channel.send('This command can only be used in a server.');
             return;
         }
-        const serverName = args[0].toLowerCase();
-        const playerName = args[1];
 
-        const rconConfig = serversRconConfig[serverName];
-        if (!rconConfig) {
-            message.channel.send(`Server "${serverName}" not found.`);
+        if (args.length < 1) {
+            message.channel.send('Usage: !unban <userID> [reason]');
             return;
         }
+
+        const userId = args[0];
+        const reason = args.slice(1).join(' ') || 'No reason provided';
 
         try {
-            const rcon = new RCON(rconConfig.host, rconConfig.port, rconConfig.password, { timeout: 5000 });
-            await rcon.connect();
+            const bannedUsers = await message.guild.bans.fetch();
+            const bannedUser = bannedUsers.find(ban => ban.user.id === userId);
 
-            await rcon.send(`pardon ${playerName}`);
-            message.channel.send(`Player ${playerName} has been unbanned on server ${serverName}.`);
+            if (!bannedUser) {
+                message.channel.send('User is not banned or user ID not found.');
+                return;
+            }
 
-            rcon.close();
+            await message.guild.members.unban(userId, `${reason} | Unbanned by ${message.author.tag}`);
+            message.channel.send(`✅ Unbanned **${bannedUser.user.tag}** (${userId})\nReason: ${reason}`);
         } catch (error) {
-            console.error('Error unbanning player:', error);
-            message.channel.send('Failed to unban player. Is the server online?');
+            console.error('Error unbanning user:', error);
+            message.channel.send('Failed to unban user. Make sure I have the Ban Members permission.');
         }
     }
 };
