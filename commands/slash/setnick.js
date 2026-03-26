@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { sendModLog } = require('../../utils/modLog');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -23,12 +24,15 @@ module.exports = {
 
         try {
             const member = await interaction.guild.members.fetch(user.id);
+            const oldNick = member.nickname || user.username;
             await member.setNickname(nickname);
 
             if (nickname) {
                 await interaction.editReply(`✅ Changed ${user}'s nickname to **${nickname}**`);
+                await sendModLog(interaction.guild, 'setnick', interaction.user, user, `Changed nickname: ${oldNick} → ${nickname}`);
             } else {
                 await interaction.editReply(`✅ Reset ${user}'s nickname`);
+                await sendModLog(interaction.guild, 'setnick', interaction.user, user, `Reset nickname (was: ${oldNick})`);
             }
         } catch (error) {
             console.error('Error setting nickname:', error);

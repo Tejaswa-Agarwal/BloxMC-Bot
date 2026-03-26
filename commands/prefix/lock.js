@@ -1,3 +1,5 @@
+const { sendModLog } = require('../../utils/modLog');
+
 module.exports = {
     name: 'lock',
     description: 'Lock a channel',
@@ -22,6 +24,9 @@ module.exports = {
             if (channel.id !== message.channel.id) {
                 await channel.send(`🔒 This channel has been locked by ${message.author}\nReason: ${reason}`);
             }
+            
+            // Send to mod log
+            await sendModLog(message.guild, 'lock', message.author, `#${channel.name}`, reason, { '📍 Channel': channel.toString() });
         } catch (error) {
             console.error('Error locking channel:', error);
             message.channel.send('❌ Failed to lock channel. Make sure I have Manage Channels permission.');

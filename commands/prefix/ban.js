@@ -1,3 +1,5 @@
+const { sendModLog } = require('../utils/modLog');
+
 module.exports = {
     name: 'ban',
     description: 'Ban a user from the Discord server',
@@ -8,7 +10,7 @@ module.exports = {
         }
 
         if (args.length < 1) {
-            message.channel.send('Usage: !ban <@user|userID> [reason]');
+            message.channel.send('Usage: k!ban <@user|userID> [reason]');
             return;
         }
 
@@ -22,6 +24,9 @@ module.exports = {
             const user = await message.client.users.fetch(userId);
             await message.guild.members.ban(userId, { reason: `${reason} | Banned by ${message.author.tag}` });
             message.channel.send(`✅ Banned **${user.tag}** (${user.id})\nReason: ${reason}`);
+            
+            // Send to mod log
+            await sendModLog(message.guild, 'ban', message.author, user, reason);
         } catch (error) {
             console.error('Error banning user:', error);
             message.channel.send('Failed to ban user. Make sure I have the Ban Members permission and the user exists.');

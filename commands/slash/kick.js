@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { sendModLog } = require('../../utils/modLog');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -26,6 +27,9 @@ module.exports = {
             const member = await interaction.guild.members.fetch(user.id);
             await member.kick(`${reason} | Kicked by ${interaction.user.tag}`);
             await interaction.editReply({ content: `✅ Kicked **${user.tag}** (${user.id})\nReason: ${reason}` });
+            
+            // Send to mod log
+            await sendModLog(interaction.guild, 'kick', interaction.user, user, reason);
         } catch (error) {
             console.error('Error kicking user:', error);
             await interaction.editReply({ content: 'Failed to kick user. Make sure I have the Kick Members permission.', ephemeral: true });

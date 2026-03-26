@@ -1,3 +1,5 @@
+const { sendModLog } = require('../../utils/modLog');
+
 module.exports = {
     name: 'timeout',
     description: 'Timeout a user in the Discord server',
@@ -38,6 +40,9 @@ module.exports = {
             
             const durationStr = formatDuration(timeoutDuration);
             message.channel.send(`✅ Timed out **${member.user.tag}** for ${durationStr}\nReason: ${reason}`);
+            
+            // Send to mod log
+            await sendModLog(message.guild, 'timeout', message.author, member.user, reason, { '⏱️ Duration': durationStr });
         } catch (error) {
             console.error('Error timing out user:', error);
             message.channel.send('Failed to timeout user. Make sure I have the Moderate Members permission and the user is in the server.');

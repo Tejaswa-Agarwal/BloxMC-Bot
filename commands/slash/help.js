@@ -16,7 +16,8 @@ module.exports = {
                     value: '```css\n' +
                            '/ban • /unban • /kick • /timeout\n' +
                            '/purge • /purgeuser • /slowmode\n' +
-                           '/lock • /unlock\n' +
+                           '/lock • /unlock • /warn\n' +
+                           '/warnings • /clearwarns • /setnick\n' +
                            '```',
                     inline: false 
                 },
@@ -25,7 +26,7 @@ module.exports = {
                     value: '```css\n' +
                            '/help • /ping • /avatar • /userinfo\n' +
                            '/serverinfo • /botinfo • /roleinfo\n' +
-                           '/leaderboard • /invite\n' +
+                           '/leaderboard • /invite • /mywarns\n' +
                            '```',
                     inline: false 
                 },
@@ -41,6 +42,7 @@ module.exports = {
                     name: '🎮 Fun Commands', 
                     value: '```css\n' +
                            '/8ball • /coinflip • /roll • /poll\n' +
+                           '/rps • /joke\n' +
                            '```',
                     inline: false 
                 },

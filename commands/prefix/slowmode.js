@@ -1,3 +1,5 @@
+const { sendModLog } = require('../../utils/modLog');
+
 module.exports = {
     name: 'slowmode',
     description: 'Set channel slowmode delay',
@@ -26,11 +28,13 @@ module.exports = {
             
             if (seconds === 0) {
                 message.channel.send(`✅ Slowmode has been **disabled** in ${channel}`);
+                await sendModLog(message.guild, 'slowmode', message.author, `#${channel.name}`, 'Disabled slowmode', { '📍 Channel': channel.toString() });
             } else {
                 const formatted = seconds < 60 ? `${seconds} seconds` : 
                                  seconds < 3600 ? `${Math.floor(seconds / 60)} minutes` : 
                                  `${Math.floor(seconds / 3600)} hours`;
                 message.channel.send(`✅ Slowmode set to **${formatted}** in ${channel}`);
+                await sendModLog(message.guild, 'slowmode', message.author, `#${channel.name}`, `Set slowmode to ${formatted}`, { '📍 Channel': channel.toString() });
             }
         } catch (error) {
             console.error('Error setting slowmode:', error);

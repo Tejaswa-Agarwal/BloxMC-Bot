@@ -1,3 +1,5 @@
+const { sendModLog } = require('../utils/modLog');
+
 module.exports = {
     name: 'unban',
     description: 'Unban a user from the Discord server',
@@ -8,7 +10,7 @@ module.exports = {
         }
 
         if (args.length < 1) {
-            message.channel.send('Usage: !unban <userID> [reason]');
+            message.channel.send('Usage: k!unban <userID> [reason]');
             return;
         }
 
@@ -26,6 +28,9 @@ module.exports = {
 
             await message.guild.members.unban(userId, `${reason} | Unbanned by ${message.author.tag}`);
             message.channel.send(`✅ Unbanned **${bannedUser.user.tag}** (${userId})\nReason: ${reason}`);
+            
+            // Send to mod log
+            await sendModLog(message.guild, 'unban', message.author, bannedUser.user, reason);
         } catch (error) {
             console.error('Error unbanning user:', error);
             message.channel.send('Failed to unban user. Make sure I have the Ban Members permission.');

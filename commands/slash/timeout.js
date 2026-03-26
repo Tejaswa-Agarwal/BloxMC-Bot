@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { sendModLog } = require('../../utils/modLog');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -46,6 +47,9 @@ module.exports = {
             
             const durationStr = formatDuration(timeoutDuration);
             await interaction.editReply({ content: `✅ Timed out **${user.tag}** for ${durationStr}\nReason: ${reason}` });
+            
+            // Send to mod log
+            await sendModLog(interaction.guild, 'timeout', interaction.user, user, reason, { '⏱️ Duration': durationStr });
         } catch (error) {
             console.error('Error timing out user:', error);
             await interaction.editReply({ content: 'Failed to timeout user. Make sure I have the Moderate Members permission.', ephemeral: true });

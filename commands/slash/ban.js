@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { sendModLog } = require('../../utils/modLog');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -25,6 +26,9 @@ module.exports = {
         try {
             await interaction.guild.members.ban(user.id, { reason: `${reason} | Banned by ${interaction.user.tag}` });
             await interaction.editReply({ content: `✅ Banned **${user.tag}** (${user.id})\nReason: ${reason}` });
+            
+            // Send to mod log
+            await sendModLog(interaction.guild, 'ban', interaction.user, user, reason);
         } catch (error) {
             console.error('Error banning user:', error);
             await interaction.editReply({ content: 'Failed to ban user. Make sure I have the Ban Members permission.', ephemeral: true });

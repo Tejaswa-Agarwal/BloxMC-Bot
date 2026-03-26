@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { sendModLog } = require('../../utils/modLog');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -28,6 +29,9 @@ module.exports = {
             
             await interaction.editReply(`🔒 ${channel} has been **locked**\nReason: ${reason}`);
             await channel.send(`🔒 This channel has been locked by ${interaction.user}\nReason: ${reason}`);
+            
+            // Send to mod log
+            await sendModLog(interaction.guild, 'lock', interaction.user, `#${channel.name}`, reason, { '📍 Channel': channel.toString() });
         } catch (error) {
             console.error('Error locking channel:', error);
             await interaction.editReply({ content: '❌ Failed to lock channel. Make sure I have Manage Channels permission.', ephemeral: true });

@@ -1,3 +1,5 @@
+const { sendModLog } = require('../../utils/modLog');
+
 module.exports = {
     name: 'setnick',
     description: 'Change a user\'s nickname',
@@ -16,12 +18,15 @@ module.exports = {
 
         try {
             const member = await message.guild.members.fetch(userId);
+            const oldNick = member.nickname || member.user.username;
             await member.setNickname(nickname);
 
             if (nickname) {
                 message.channel.send(`✅ Changed ${member.user}'s nickname to **${nickname}**`);
+                await sendModLog(message.guild, 'setnick', message.author, member.user, `Changed nickname: ${oldNick} → ${nickname}`);
             } else {
                 message.channel.send(`✅ Reset ${member.user}'s nickname`);
+                await sendModLog(message.guild, 'setnick', message.author, member.user, `Reset nickname (was: ${oldNick})`);
             }
         } catch (error) {
             console.error('Error setting nickname:', error);

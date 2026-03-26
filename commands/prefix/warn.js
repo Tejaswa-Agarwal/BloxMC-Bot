@@ -1,6 +1,7 @@
 const { EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
+const { sendModLog } = require('../utils/modLog');
 
 const warningsFile = path.join(__dirname, '..', '..', 'data', 'warnings.json');
 
@@ -67,6 +68,9 @@ module.exports = {
                 .setTimestamp();
 
             message.channel.send({ embeds: [embed] });
+
+            // Send to mod log
+            await sendModLog(message.guild, 'warn', message.author, user, reason, { '📊 Total Warnings': warnCount });
 
             try {
                 await user.send({ embeds: [embed] });

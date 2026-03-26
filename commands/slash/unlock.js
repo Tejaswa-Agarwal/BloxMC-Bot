@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { sendModLog } = require('../../utils/modLog');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -23,6 +24,9 @@ module.exports = {
             
             await interaction.editReply(`🔓 ${channel} has been **unlocked**`);
             await channel.send(`🔓 This channel has been unlocked by ${interaction.user}`);
+            
+            // Send to mod log
+            await sendModLog(interaction.guild, 'unlock', interaction.user, `#${channel.name}`, 'Channel unlocked', { '📍 Channel': channel.toString() });
         } catch (error) {
             console.error('Error unlocking channel:', error);
             await interaction.editReply({ content: '❌ Failed to unlock channel. Make sure I have Manage Channels permission.', ephemeral: true });
