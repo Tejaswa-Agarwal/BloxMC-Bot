@@ -5,44 +5,56 @@ module.exports = {
     description: 'Display all available commands',
     async execute(message, args) {
         const embed = new EmbedBuilder()
-            .setTitle('📋 Bot Commands')
-            .setColor(0x0099FF)
-            .setDescription('Here are all the available commands:')
+            .setAuthor({ name: '📚 Command Guide', iconURL: message.client.user.displayAvatarURL() })
+            .setTitle('Available Bot Commands')
+            .setColor(0x5865F2)
+            .setDescription('Use `/command` or `!command` to execute commands')
             .addFields(
                 { 
                     name: '🛡️ Moderation Commands', 
-                    value: '`!ban <@user|ID> [reason]` - Ban a user\n' +
-                           '`!unban <userID> [reason]` - Unban a user\n' +
-                           '`!kick <@user|ID> [reason]` - Kick a user\n' +
-                           '`!timeout <@user|ID> <duration> [reason]` - Timeout a user\n' +
-                           '`!purge <amount>` - Delete messages\n' +
-                           '`!purgeuser <@user|ID> <amount>` - Delete user messages',
+                    value: '```css\n' +
+                           '!ban • !unban • !kick • !timeout\n' +
+                           '!purge • !purgeuser • !slowmode\n' +
+                           '!lock • !unlock\n' +
+                           '```',
                     inline: false 
                 },
                 { 
                     name: '🔧 Utility Commands', 
-                    value: '`!help` - Show this help message\n' +
-                           '`!ping` - Check bot latency\n' +
-                           '`!avatar [@user]` - Show user avatar\n' +
-                           '`!userinfo [@user]` - Show user information\n' +
-                           '`!serverinfo` - Show server information\n' +
-                           '`!leaderboard` - Show XP leaderboard',
+                    value: '```css\n' +
+                           '!help • !ping • !avatar • !userinfo\n' +
+                           '!serverinfo • !botinfo • !roleinfo\n' +
+                           '!leaderboard • !invite\n' +
+                           '```',
                     inline: false 
                 },
                 { 
                     name: '⚙️ Admin Commands', 
-                    value: '`!announce <channel> <message>` - Send announcement\n' +
-                           '`!command <enable|disable> <command>` - Toggle commands',
+                    value: '```css\n' +
+                           '!announce • !say • !command\n' +
+                           '```',
+                    inline: false 
+                },
+                { 
+                    name: '🎮 Fun Commands', 
+                    value: '```css\n' +
+                           '!8ball • !coinflip • !roll • !poll\n' +
+                           '```',
                     inline: false 
                 },
                 { 
                     name: '🎉 Giveaway Commands', 
-                    value: '`!giveaway` - Create a giveaway\n' +
-                           'Use slash command `/giveaway-reroll` to reroll',
+                    value: '```css\n' +
+                           '!giveaway\n' +
+                           '```',
                     inline: false 
                 }
             )
-            .setFooter({ text: 'You can also use slash commands (/) for most commands!' })
+            .setThumbnail(message.client.user.displayAvatarURL({ size: 256 }))
+            .setFooter({ 
+                text: `Requested by ${message.author.tag}`, 
+                iconURL: message.author.displayAvatarURL() 
+            })
             .setTimestamp();
 
         message.channel.send({ embeds: [embed] });

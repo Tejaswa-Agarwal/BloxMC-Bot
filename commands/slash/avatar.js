@@ -12,10 +12,13 @@ module.exports = {
         const user = interaction.options.getUser('user') || interaction.user;
         
         const embed = new EmbedBuilder()
-            .setTitle(`${user.username}'s Avatar`)
-            .setColor(0x0099FF)
-            .setImage(user.displayAvatarURL({ dynamic: true, size: 1024 }))
-            .setDescription(`[Download](${user.displayAvatarURL({ dynamic: true, size: 1024 })})`)
+            .setAuthor({ name: `${user.username}'s Avatar`, iconURL: user.displayAvatarURL() })
+            .setColor(0x9B59B6)
+            .setImage(user.displayAvatarURL({ dynamic: true, size: 2048 }))
+            .addFields(
+                { name: '🔗 Links', value: `[PNG](${user.displayAvatarURL({ extension: 'png', size: 2048 })}) • [JPG](${user.displayAvatarURL({ extension: 'jpg', size: 2048 })}) • [WEBP](${user.displayAvatarURL({ extension: 'webp', size: 2048 })})`, inline: false }
+            )
+            .setFooter({ text: `Requested by ${interaction.user.tag}`, iconURL: interaction.user.displayAvatarURL() })
             .setTimestamp();
 
         await interaction.editReply({ embeds: [embed] });

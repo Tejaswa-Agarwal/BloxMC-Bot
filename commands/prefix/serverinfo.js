@@ -12,25 +12,35 @@ module.exports = {
         const guild = message.guild;
         const owner = await guild.fetchOwner();
         
+        const textChannels = guild.channels.cache.filter(c => c.type === 0).size;
+        const voiceChannels = guild.channels.cache.filter(c => c.type === 2).size;
+        const categories = guild.channels.cache.filter(c => c.type === 4).size;
+        
         const embed = new EmbedBuilder()
-            .setTitle('Server Information')
-            .setColor(0x0099FF)
-            .setThumbnail(guild.iconURL({ dynamic: true, size: 1024 }))
+            .setAuthor({ name: guild.name, iconURL: guild.iconURL({ dynamic: true }) })
+            .setTitle('📊 Server Information')
+            .setColor(0x5865F2)
+            .setThumbnail(guild.iconURL({ dynamic: true, size: 256 }))
             .addFields(
-                { name: 'Server Name', value: guild.name, inline: true },
-                { name: 'Server ID', value: guild.id, inline: true },
-                { name: 'Owner', value: owner.user.tag, inline: true },
-                { name: 'Created', value: `<t:${Math.floor(guild.createdTimestamp / 1000)}:R>`, inline: true },
-                { name: 'Members', value: `${guild.memberCount}`, inline: true },
-                { name: 'Boost Level', value: `Level ${guild.premiumTier} (${guild.premiumSubscriptionCount} boosts)`, inline: true },
-                { name: 'Channels', value: `${guild.channels.cache.size}`, inline: true },
-                { name: 'Roles', value: `${guild.roles.cache.size}`, inline: true },
-                { name: 'Emojis', value: `${guild.emojis.cache.size}`, inline: true }
+                { name: '👑 Owner', value: `${owner.user.tag}`, inline: true },
+                { name: '🆔 Server ID', value: `\`${guild.id}\``, inline: true },
+                { name: '📅 Created', value: `<t:${Math.floor(guild.createdTimestamp / 1000)}:R>`, inline: true },
+                { name: '👥 Members', value: `\`\`\`yaml\nTotal: ${guild.memberCount}\nHumans: ${guild.members.cache.filter(m => !m.user.bot).size}\nBots: ${guild.members.cache.filter(m => m.user.bot).size}\`\`\``, inline: true },
+                { name: '📺 Channels', value: `\`\`\`yaml\nText: ${textChannels}\nVoice: ${voiceChannels}\nCategories: ${categories}\`\`\``, inline: true },
+                { name: '🚀 Boosts', value: `\`\`\`yaml\nLevel: ${guild.premiumTier}\nBoosts: ${guild.premiumSubscriptionCount || 0}\`\`\``, inline: true },
+                { name: '🎭 Roles', value: `\`${guild.roles.cache.size}\``, inline: true },
+                { name: '😀 Emojis', value: `\`${guild.emojis.cache.size}\``, inline: true },
+                { name: '💬 Stickers', value: `\`${guild.stickers.cache.size}\``, inline: true }
             )
+            .setFooter({ text: `Requested by ${message.author.tag}`, iconURL: message.author.displayAvatarURL() })
             .setTimestamp();
 
         if (guild.description) {
-            embed.setDescription(guild.description);
+            embed.setDescription(`*${guild.description}*`);
+        }
+
+        if (guild.bannerURL()) {
+            embed.setImage(guild.bannerURL({ size: 1024 }));
         }
 
         message.channel.send({ embeds: [embed] });

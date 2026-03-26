@@ -6,45 +6,57 @@ module.exports = {
         .setDescription('Display all available commands'),
     async execute(interaction) {
         const embed = new EmbedBuilder()
-            .setTitle('📋 Bot Commands')
-            .setColor(0x0099FF)
-            .setDescription('Here are all the available commands:')
+            .setAuthor({ name: '📚 Command Guide', iconURL: interaction.client.user.displayAvatarURL() })
+            .setTitle('Available Bot Commands')
+            .setColor(0x5865F2)
+            .setDescription('Use `/command` or `!command` to execute commands')
             .addFields(
                 { 
                     name: '🛡️ Moderation Commands', 
-                    value: '`/ban <user> [reason]` - Ban a user\n' +
-                           '`/unban <userid> [reason]` - Unban a user\n' +
-                           '`/kick <user> [reason]` - Kick a user\n' +
-                           '`/timeout <user> <duration> [reason]` - Timeout a user\n' +
-                           '`/purge <amount>` - Delete messages\n' +
-                           '`/purgeuser <user> <amount>` - Delete user messages',
+                    value: '```css\n' +
+                           '/ban • /unban • /kick • /timeout\n' +
+                           '/purge • /purgeuser • /slowmode\n' +
+                           '/lock • /unlock\n' +
+                           '```',
                     inline: false 
                 },
                 { 
                     name: '🔧 Utility Commands', 
-                    value: '`/help` - Show this help message\n' +
-                           '`/ping` - Check bot latency\n' +
-                           '`/avatar [user]` - Show user avatar\n' +
-                           '`/userinfo [user]` - Show user information\n' +
-                           '`/serverinfo` - Show server information\n' +
-                           '`/leaderboard` - Show XP leaderboard',
+                    value: '```css\n' +
+                           '/help • /ping • /avatar • /userinfo\n' +
+                           '/serverinfo • /botinfo • /roleinfo\n' +
+                           '/leaderboard • /invite\n' +
+                           '```',
                     inline: false 
                 },
                 { 
                     name: '⚙️ Admin Commands', 
-                    value: '`/announce <channel> <message>` - Send announcement\n' +
-                           '`/command <action> <command>` - Toggle commands\n' +
-                           '`/logs <channel>` - Set logging channel',
+                    value: '```css\n' +
+                           '/announce • /say • /command\n' +
+                           '/logs\n' +
+                           '```',
+                    inline: false 
+                },
+                { 
+                    name: '🎮 Fun Commands', 
+                    value: '```css\n' +
+                           '/8ball • /coinflip • /roll • /poll\n' +
+                           '```',
                     inline: false 
                 },
                 { 
                     name: '🎉 Giveaway Commands', 
-                    value: '`/giveaway` - Create a giveaway\n' +
-                           '`/giveaway-reroll` - Reroll a giveaway',
+                    value: '```css\n' +
+                           '/giveaway • /giveaway-reroll\n' +
+                           '```',
                     inline: false 
                 }
             )
-            .setFooter({ text: 'You can also use prefix commands (!) for most commands!' })
+            .setThumbnail(interaction.client.user.displayAvatarURL({ size: 256 }))
+            .setFooter({ 
+                text: `Requested by ${interaction.user.tag}`, 
+                iconURL: interaction.user.displayAvatarURL() 
+            })
             .setTimestamp();
 
         await interaction.editReply({ embeds: [embed] });
