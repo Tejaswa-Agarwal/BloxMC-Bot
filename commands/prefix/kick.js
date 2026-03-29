@@ -1,5 +1,6 @@
 const { sendModLog } = require('../../utils/modLog');
 const { createCase } = require('../../utils/caseManager');
+const { BOT_OWNER_ID } = require('../../utils/permissions');
 
 module.exports = {
     name: 'kick',
@@ -20,6 +21,11 @@ module.exports = {
 
         // Extract user ID from mention or direct ID
         const userId = userMention.replace(/[<@!>]/g, '');
+
+        if (userId === BOT_OWNER_ID) {
+            message.channel.send('❌ You cannot moderate the bot owner.');
+            return;
+        }
         
         try {
             const member = await message.guild.members.fetch(userId);

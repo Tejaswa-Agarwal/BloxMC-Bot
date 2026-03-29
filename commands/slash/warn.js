@@ -4,6 +4,7 @@ const path = require('path');
 const { sendModLog } = require('../../utils/modLog');
 const { createCase } = require('../../utils/caseManager');
 const EmbedTemplate = require('../../utils/embedTemplate');
+const { BOT_OWNER_ID } = require('../../utils/permissions');
 
 const warningsFile = path.join(__dirname, '..', '..', 'data', 'warnings.json');
 
@@ -49,6 +50,12 @@ module.exports = {
         // Check if trying to warn bot
         if (user.id === interaction.client.user.id) {
             const embed = EmbedTemplate.error('Cannot Warn Bot', 'You cannot warn me!');
+            return interaction.editReply({ embeds: [embed], ephemeral: true });
+        }
+
+        // Bot owner immunity
+        if (user.id === BOT_OWNER_ID) {
+            const embed = EmbedTemplate.error('Action Blocked', 'You cannot moderate the bot owner.');
             return interaction.editReply({ embeds: [embed], ephemeral: true });
         }
 

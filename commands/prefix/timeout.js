@@ -1,5 +1,6 @@
 const { sendModLog } = require('../../utils/modLog');
 const { createCase } = require('../../utils/caseManager');
+const { BOT_OWNER_ID } = require('../../utils/permissions');
 
 module.exports = {
     name: 'timeout',
@@ -21,6 +22,11 @@ module.exports = {
 
         // Extract user ID from mention or direct ID
         const userId = userMention.replace(/[<@!>]/g, '');
+
+        if (userId === BOT_OWNER_ID) {
+            message.channel.send('❌ You cannot moderate the bot owner.');
+            return;
+        }
         
         // Parse duration (e.g., 10m, 1h, 1d)
         let timeoutDuration;

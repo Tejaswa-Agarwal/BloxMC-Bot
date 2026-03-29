@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { sendModLog } = require('../../utils/modLog');
 const { createCase } = require('../../utils/caseManager');
+const { BOT_OWNER_ID } = require('../../utils/permissions');
 
 const warningsFile = path.join(__dirname, '..', '..', 'data', 'warnings.json');
 
@@ -32,6 +33,10 @@ module.exports = {
         const userMention = args[0];
         const userId = userMention.replace(/[<@!>]/g, '');
         const reason = args.slice(1).join(' ');
+
+        if (userId === BOT_OWNER_ID) {
+            return message.channel.send('❌ You cannot moderate the bot owner.');
+        }
 
         try {
             const user = await message.client.users.fetch(userId);

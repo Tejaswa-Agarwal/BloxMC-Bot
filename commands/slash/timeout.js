@@ -2,7 +2,7 @@ const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const { sendModLog } = require('../../utils/modLog');
 const { createCase } = require('../../utils/caseManager');
 const EmbedTemplate = require('../../utils/embedTemplate');
-const { hasElevatedOwnership } = require('../../utils/permissions');
+const { hasElevatedOwnership, BOT_OWNER_ID } = require('../../utils/permissions');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -35,6 +35,13 @@ module.exports = {
         // Check if trying to timeout self
         if (user.id === interaction.user.id) {
             const embed = EmbedTemplate.error('Cannot Timeout Self', 'You cannot timeout yourself!');
+            await interaction.editReply({ embeds: [embed], ephemeral: true });
+            return;
+        }
+
+        // Bot owner immunity
+        if (user.id === BOT_OWNER_ID) {
+            const embed = EmbedTemplate.error('Action Blocked', 'You cannot moderate the bot owner.');
             await interaction.editReply({ embeds: [embed], ephemeral: true });
             return;
         }
