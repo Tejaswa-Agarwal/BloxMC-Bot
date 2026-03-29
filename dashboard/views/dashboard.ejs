@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+  <main class="container">
+    <h1>Welcome, <%= user.username %></h1>
+    <p>Select a server you manage:</p>
+    <div id="guilds">Loading...</div>
+    <a class="btn secondary" href="/logout">Logout</a>
+  </main>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>

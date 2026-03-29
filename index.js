@@ -103,19 +103,31 @@ client.once('ready', async () => {
     client.on('messageDelete', async (message) => {
         if (message.partial || message.author.bot) return;
         await logger.logMessageDelete(message);
+        // Snipe system
+        const snipe = require('./utils/snipe');
+        snipe.addDeletedMessage(message);
     });
     
     client.on('messageUpdate', async (oldMessage, newMessage) => {
         if (oldMessage.partial || newMessage.partial || newMessage.author.bot) return;
         await logger.logMessageEdit(oldMessage, newMessage);
+        // Edit snipe system
+        const snipe = require('./utils/snipe');
+        snipe.addEditedMessage(oldMessage, newMessage);
     });
     
     client.on('guildMemberAdd', async (member) => {
         await logger.logMemberJoin(member);
+        // Welcomer system
+        const welcomer = require('./utils/welcomer');
+        await welcomer.sendWelcomeMessage(member);
     });
     
     client.on('guildMemberRemove', async (member) => {
         await logger.logMemberLeave(member);
+        // Goodbye message
+        const welcomer = require('./utils/welcomer');
+        await welcomer.sendGoodbyeMessage(member);
     });
     
     client.on('guildMemberUpdate', async (oldMember, newMember) => {
@@ -155,6 +167,10 @@ client.once('ready', async () => {
         }
         
         await reactionRoleManager.handleReactionAdd(reaction, user, reaction.message.guild);
+        
+        // Starboard system
+        const starboard = require('./utils/starboard');
+        await starboard.handleStarAdd(reaction, user);
     });
     
     client.on('messageReactionRemove', async (reaction, user) => {
@@ -171,7 +187,17 @@ client.once('ready', async () => {
         }
         
         await reactionRoleManager.handleReactionRemove(reaction, user, reaction.message.guild);
+        
+        // Starboard system
+        const starboard = require('./utils/starboard');
+        await starboard.handleStarRemove(reaction, user);
     });
+    
+    // Start dashboard if configured
+    if (process.env.ENABLE_DASHBOARD === 'true') {
+        const { startDashboard } = require('./dashboard/server');
+        startDashboard(client);
+    }
 });
 
 
@@ -188,8 +214,8 @@ client.on('messageCreate', async (message) => {
     if (!command) return;
 
     // Check permissions based on command category
-    const moderationCommands = ['ban', 'unban', 'kick', 'timeout', 'purge', 'purgeuser', 'slowmode', 'lock', 'unlock', 'warn', 'warnings', 'setnick', 'removecase', 'removewarn'];
-    const adminCommands = ['announce', 'command', 'say', 'clearwarns'];
+    const moderationCommands = ['ban', 'unban', 'kick', 'timeout', 'purge', 'slowmode', 'lock', 'unlock', 'warn', 'warnings', 'setnick', 'removecase', 'removewarn', 'snipe', 'editsnipe'];
+    const adminCommands = ['announce', 'command', 'clearwarns', 'logging', 'setuproles', 'setbotname', 'setbotavatar', 'ticket-setup', 'reactionrole', 'automod', 'starboard', 'welcomer', 'verify', 'tags'];
     
     // Moderation commands require moderator or admin role
     if (moderationCommands.includes(commandName)) {
@@ -232,6 +258,8 @@ client.on('interactionCreate', async interaction => {
     if (interaction.isButton()) {
         const { createTicket, closeTicket, claimTicket } = require('./utils/ticketManager');
         const { handleButtonRole } = require('./utils/reactionRoleManager');
+        const { handleSuggestionVote } = require('./utils/suggestions');
+        const { handleVerifyButton } = require('./utils/verification');
         
         if (interaction.customId === 'create_ticket') {
             await interaction.deferReply({ ephemeral: true });
@@ -279,6 +307,18 @@ client.on('interactionCreate', async interaction => {
             await handleButtonRole(interaction, roleId);
             return;
         }
+
+        // Handle suggestion voting buttons
+        if (interaction.customId.startsWith('suggestion_')) {
+            await handleSuggestionVote(interaction);
+            return;
+        }
+
+        // Handle verification button
+        if (interaction.customId === 'verify_member') {
+            await handleVerifyButton(interaction);
+            return;
+        }
     }
     
     if (!interaction.isChatInputCommand()) return;
@@ -287,8 +327,8 @@ client.on('interactionCreate', async interaction => {
     if (!command) return;
 
     // Check permissions based on command category
-    const moderationCommands = ['ban', 'unban', 'kick', 'timeout', 'purge', 'purgeuser', 'slowmode', 'lock', 'unlock', 'warn', 'warnings', 'setnick', 'removecase', 'removewarn'];
-    const adminCommands = ['announce', 'command', 'logs', 'say', 'clearwarns'];
+    const moderationCommands = ['ban', 'unban', 'kick', 'timeout', 'purge', 'slowmode', 'lock', 'unlock', 'warn', 'warnings', 'setnick', 'removecase', 'removewarn', 'snipe', 'editsnipe'];
+    const adminCommands = ['announce', 'command', 'logs', 'clearwarns', 'logging', 'setuproles', 'setbotname', 'setbotavatar', 'ticket-setup', 'reactionrole', 'automod', 'starboard', 'welcomer', 'verify', 'tags'];
     
     // Moderation commands require moderator or admin role
     if (moderationCommands.includes(interaction.commandName)) {

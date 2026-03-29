@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= guild.name %> - Dashboard</title>
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+  <main class="container">
+    <h1><%= guild.name %></h1>
+    <p>Configure key modules:</p>
+
+    <section class="card">
+      <h2>Quick Config</h2>
+      <p>Use slash commands for full setup while dashboard MVP is active.</p>
+      <ul>
+        <li>Moderation roles: <code>/setuproles</code></li>
+        <li>Automod: <code>/automod</code></li>
+        <li>Logging: <code>/logging setup</code></li>
+        <li>Tickets: <code>/ticket-setup</code></li>
+        <li>Starboard: <code>/starboard setup</code></li>
+        <li>Welcomer: <code>/welcomer setup</code></li>
+      </ul>
+    </section>
+
+    <a class="btn" href="/dashboard">Back to servers</a>
+  </main>
+</body>
+</html>

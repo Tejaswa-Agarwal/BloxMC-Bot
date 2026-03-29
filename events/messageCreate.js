@@ -68,6 +68,10 @@ module.exports = (client) => {
     client.on('messageCreate', async (message) => {
         if (message.author.bot) return;
 
+        // AFK system - check for AFK mentions and remove AFK status
+        const afk = require('../utils/afk');
+        await afk.checkAFKMentions(message);
+
         // New enhanced automod system
         const automod = require('../utils/automod');
         const handled = await automod.checkMessage(message);

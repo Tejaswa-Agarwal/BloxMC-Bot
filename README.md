@@ -41,10 +41,10 @@ A comprehensive, enterprise-ready Discord moderation and utility bot with advanc
 - **Polls**: Duration-based with automatic results
 - **Giveaways**: Button-based entry with automatic winner selection
 
-## 📋 Command List (35 Commands)
+## 📋 Command List (41 Commands)
 
 ### 🛡️ Moderation (13)
-`/ban` `/unban` `/kick` `/timeout` `/warn` `/warnings` `/removewarn` `/clearwarns` `/cases` `/removecase` `/purge` `/slowmode` `/lock` `/unlock` `/setnick`
+`/ban` `/unban` `/kick` `/timeout` `/warn` `/warnings` `/removewarn` `/clearwarns` `/cases` `/removecase` `/purge` `/slowmode` `/lock` `/unlock` `/setnick` `/snipe` `/editsnipe`
 
 ### 🎫 Tickets (2)
 `/ticket-setup` `/ticket` (create, close, add, remove)
@@ -59,10 +59,10 @@ A comprehensive, enterprise-ready Discord moderation and utility bot with advanc
 `/automod` (enable, config, antispam, anticaps, punishment, whitelist)
 
 ### 🔧 Utility (6)
-`/help` `/ping` `/avatar` `/userinfo` `/serverinfo` `/warnings`
+`/help` `/ping` `/avatar` `/userinfo` `/serverinfo` `/warnings` `/afk` `/suggest`
 
 ### ⚙️ Admin (6)
-`/announce` `/command` `/logs` `/setuproles` `/setbotname` `/setbotavatar`
+`/announce` `/command` `/logs` `/setuproles` `/setbotname` `/setbotavatar` `/welcomer` `/starboard` `/verify` `/tags` `/notes`
 
 ### 🎮 Fun (2)
 `/8ball` `/poll`
@@ -70,6 +70,22 @@ A comprehensive, enterprise-ready Discord moderation and utility bot with advanc
 ### 🎉 Giveaways (2)
 `/giveaway` `/giveaway-reroll`
 
+
+
+### 🌟 New Community Features
+- **Starboard**: Showcase top messages with ⭐ reaction thresholds
+- **Welcomer**: Custom welcome/goodbye messages with placeholders and auto-role
+- **Suggestions**: Public suggestion board with upvote/downvote buttons
+- **AFK**: Set AFK reason and auto-reply when mentioned
+- **Staff Notes**: Internal moderation notes per user
+- **Tags**: Reusable custom server responses
+- **Verification**: Button-based member verification role assignment
+
+### 📊 Dashboard (MVP)
+- Discord OAuth login flow scaffolded
+- Server list + management pages scaffolded
+- REST API for guild configuration reads/writes
+- Ready for domain later (set callback URL in env)
 ## 🚀 Quick Start
 
 ### Prerequisites

@@ -18,7 +18,7 @@ module.exports = {
                            '/warn • /warnings • /removewarn\n' +
                            '/cases • /removecase • /clearwarns\n' +
                            '/slowmode • /lock • /unlock\n' +
-                           '/purge • /setnick\n' +
+                           '/purge • /setnick • /snipe • /editsnipe\n' +
                            '```',
                     inline: false 
                 },
@@ -59,8 +59,8 @@ module.exports = {
                 { 
                     name: '🔧 Utility Commands', 
                     value: '```css\n' +
-                           '/help • /ping • /avatar\n' +
-                           '/userinfo • /serverinfo • /warnings\n' +
+                           '/help • /ping • /avatar • /afk\n' +
+                           '/userinfo • /serverinfo • /warnings • /suggest\n' +
                            '```',
                     inline: false 
                 },
@@ -69,6 +69,7 @@ module.exports = {
                     value: '```css\n' +
                            '/announce • /command • /logs\n' +
                            '/setuproles • /setbotname • /setbotavatar\n' +
+                           '/welcomer • /starboard • /verify • /tags • /notes\n' +
                            '```',
                     inline: false 
                 },
@@ -89,7 +90,7 @@ module.exports = {
             )
             .setThumbnail(interaction.client.user.displayAvatarURL({ size: 256 }))
             .setFooter({ 
-                text: `${interaction.client.user.username} • 35 Commands Available`, 
+                text: `${interaction.client.user.username} • 41 Commands Available`, 
                 iconURL: interaction.client.user.displayAvatarURL() 
             })
             .setTimestamp();
