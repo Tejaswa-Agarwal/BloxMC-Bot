@@ -3,19 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BloxMC Dashboard</title>
+  <title>Axion Dashboard</title>
   <link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
   <main class="container">
-    <h1>BloxMC Bot Dashboard</h1>
-    <p>Manage your server settings with a web dashboard.</p>
+    <section class="hero">
+      <div class="brand"><span class="dot"></span> AXION</div>
+      <h1>Axion Control Center</h1>
+      <p>Clean, fast server management for moderation, automod, tickets, and more.</p>
+      <div class="actions">
+        <% if (user) { %>
+          <a class="btn" href="/dashboard">Open Dashboard</a>
+          <a class="btn secondary" href="/logout">Logout</a>
+        <% } else { %>
+          <a class="btn" href="/login">Login with Discord</a>
+        <% } %>
+      </div>
+    </section>
+
     <section class="card">
-      <h2>Setup</h2>
-      <p>Bind is now <code>0.0.0.0</code> by default. Configure env:</p>
-      <pre><code>DASHBOARD_PORT=25575
+      <h2>Quick Setup</h2>
+      <p class="muted">Runtime environment for dashboard + bot:</p>
+      <pre><code>ENABLE_DASHBOARD=true
 DASHBOARD_HOST=0.0.0.0
-ENABLE_DASHBOARD=true
+DASHBOARD_PORT=25575
 
 # Recommended with domain:
 DISCORD_CLIENT_ID=...
@@ -25,12 +37,6 @@ DASHBOARD_CALLBACK=https://your-domain.com/callback
 # Optional local bootstrap (disable after OAuth setup):
 DASHBOARD_NO_AUTH=true</code></pre>
     </section>
-    <% if (user) { %>
-      <a class="btn" href="/dashboard">Open Dashboard</a>
-      <a class="btn secondary" href="/logout">Logout</a>
-    <% } else { %>
-      <a class="btn" href="/login">Login with Discord</a>
-    <% } %>
   </main>
 </body>
 </html>

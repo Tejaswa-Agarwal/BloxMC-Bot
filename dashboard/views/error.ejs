@@ -1,2 +1,21 @@
 <!DOCTYPE html>
-<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Error</title><link rel="stylesheet" href="/css/main.css"></head><body><main class="container"><h1>Error</h1><p><%= message || 'Something went wrong' %></p><a class="btn" href="/dashboard">Back</a></main></body></html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Error · Axion</title>
+  <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+  <main class="container">
+    <section class="hero">
+      <div class="brand"><span class="dot"></span> AXION</div>
+      <h1>Something went wrong</h1>
+      <p><%= message || 'Unexpected server error.' %></p>
+      <div class="actions">
+        <a class="btn" href="/dashboard">Back to Dashboard</a>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

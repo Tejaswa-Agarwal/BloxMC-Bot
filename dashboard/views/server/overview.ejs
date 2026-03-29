@@ -3,63 +3,71 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= guild.name %> - Dashboard</title>
+  <title><%= guild.name %> · Axion</title>
   <link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
   <main class="container">
-    <h1><%= guild.name %></h1>
-    <p>Configure key modules from the dashboard:</p>
-
-    <section class="card">
-      <h2>Role Configuration</h2>
-      <label>Moderator Role ID</label>
-      <input id="moderatorRoleId" type="text" placeholder="123456789012345678" />
-      <label>Admin Role ID</label>
-      <input id="adminRoleId" type="text" placeholder="123456789012345678" />
-      <button class="btn" onclick="saveSection('roleConfig', { moderatorRoleId: val('moderatorRoleId'), adminRoleId: val('adminRoleId') })">Save Roles</button>
+    <section class="hero">
+      <div class="brand"><span class="dot"></span> AXION</div>
+      <h1><%= guild.name %></h1>
+      <p>Axion server configuration panel</p>
+      <div class="actions">
+        <a class="btn secondary" href="/dashboard">Back to Servers</a>
+      </div>
     </section>
 
-    <section class="card">
-      <h2>Welcomer</h2>
-      <label>Enabled</label>
-      <select id="welcomerEnabled"><option value="true">true</option><option value="false">false</option></select>
-      <label>Channel ID</label>
-      <input id="welcomerChannelId" type="text" placeholder="123456789012345678" />
-      <label>Message</label>
-      <textarea id="welcomerMessage" rows="3" placeholder="Welcome {user} to {server}!"></textarea>
-      <button class="btn" onclick="saveSection('welcomerConfig', { enabled: boolVal('welcomerEnabled'), channelId: val('welcomerChannelId'), message: val('welcomerMessage') })">Save Welcomer</button>
-    </section>
+    <div class="grid cols-2">
+      <section class="card">
+        <h2>Role Configuration</h2>
+        <p class="muted">Set moderator and admin role IDs.</p>
+        <label>Moderator Role ID</label>
+        <input id="moderatorRoleId" type="text" placeholder="123456789012345678" />
+        <label>Admin Role ID</label>
+        <input id="adminRoleId" type="text" placeholder="123456789012345678" />
+        <button class="btn" onclick="saveSection('roleConfig', { moderatorRoleId: val('moderatorRoleId'), adminRoleId: val('adminRoleId') })">Save Roles</button>
+      </section>
 
-    <section class="card">
-      <h2>Starboard</h2>
-      <label>Enabled</label>
-      <select id="starboardEnabled"><option value="true">true</option><option value="false">false</option></select>
-      <label>Channel ID</label>
-      <input id="starboardChannelId" type="text" placeholder="123456789012345678" />
-      <label>Threshold</label>
-      <input id="starboardThreshold" type="number" min="1" max="20" value="3" />
-      <button class="btn" onclick="saveSection('starboardConfig', { enabled: boolVal('starboardEnabled'), channelId: val('starboardChannelId'), threshold: numVal('starboardThreshold') })">Save Starboard</button>
-    </section>
+      <section class="card">
+        <h2>Welcomer</h2>
+        <label>Enabled</label>
+        <select id="welcomerEnabled"><option value="true">true</option><option value="false">false</option></select>
+        <label>Channel ID</label>
+        <input id="welcomerChannelId" type="text" placeholder="123456789012345678" />
+        <label>Message</label>
+        <textarea id="welcomerMessage" rows="3" placeholder="Welcome {user} to {server}!"></textarea>
+        <button class="btn" onclick="saveSection('welcomerConfig', { enabled: boolVal('welcomerEnabled'), channelId: val('welcomerChannelId'), message: val('welcomerMessage') })">Save Welcomer</button>
+      </section>
 
-    <section class="card">
-      <h2>Automod (quick)</h2>
-      <label>Enabled</label>
-      <select id="automodEnabled"><option value="true">true</option><option value="false">false</option></select>
-      <button class="btn" onclick="saveSection('automodConfig', { enabled: boolVal('automodEnabled') })">Save Automod</button>
-    </section>
+      <section class="card">
+        <h2>Starboard</h2>
+        <label>Enabled</label>
+        <select id="starboardEnabled"><option value="true">true</option><option value="false">false</option></select>
+        <label>Channel ID</label>
+        <input id="starboardChannelId" type="text" placeholder="123456789012345678" />
+        <label>Threshold</label>
+        <input id="starboardThreshold" type="number" min="1" max="20" value="3" />
+        <button class="btn" onclick="saveSection('starboardConfig', { enabled: boolVal('starboardEnabled'), channelId: val('starboardChannelId'), threshold: numVal('starboardThreshold') })">Save Starboard</button>
+      </section>
 
-    <section class="card">
-      <h2>Logging (quick)</h2>
-      <label>Moderation Log Channel ID</label>
-      <input id="modLog" type="text" placeholder="123456789012345678" />
-      <label>Message Log Channel ID</label>
-      <input id="messageLog" type="text" placeholder="123456789012345678" />
-      <button class="btn" onclick="saveSection('logConfig', { modLog: val('modLog'), messageLog: val('messageLog') })">Save Logging</button>
-    </section>
+      <section class="card">
+        <h2>Automod</h2>
+        <label>Enabled</label>
+        <select id="automodEnabled"><option value="true">true</option><option value="false">false</option></select>
+        <button class="btn" onclick="saveSection('automodConfig', { enabled: boolVal('automodEnabled') })">Save Automod</button>
+      </section>
 
-    <div id="status" class="card" style="display:none;"></div>
-    <a class="btn" href="/dashboard">Back to servers</a>
+      <section class="card">
+        <h2>Logging</h2>
+        <label>Moderation Log Channel ID</label>
+        <input id="modLog" type="text" placeholder="123456789012345678" />
+        <label>Message Log Channel ID</label>
+        <input id="messageLog" type="text" placeholder="123456789012345678" />
+        <button class="btn" onclick="saveSection('logConfig', { modLog: val('modLog'), messageLog: val('messageLog') })">Save Logging</button>
+      </section>
+    </div>
+
+    <div id="status" class="card status"></div>
   </main>
   <script>
     const guildId = '<%= guild.id %>';
