@@ -11,6 +11,7 @@ const client = new Client({
 });
 
 const configStore = require('./configStore');
+const { hasModeratorPermission, hasAdminPermission } = require('./utils/permissions');
 
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 
@@ -103,33 +104,31 @@ client.on('messageCreate', async (message) => {
     if (!command) return;
 
     // Check permissions based on command category
-    const memberRoles = message.member?.roles.cache;
+    const moderationCommands = ['ban', 'unban', 'kick', 'timeout', 'purge', 'purgeuser', 'slowmode', 'lock', 'unlock', 'warn', 'warnings', 'setnick', 'removecase', 'removewarn'];
+    const adminCommands = ['announce', 'command', 'say', 'clearwarns'];
     
-    // Moderation commands require moderator role
-    const moderationCommands = ['ban', 'unban', 'kick', 'timeout', 'purge', 'purgeuser', 'slowmode', 'lock', 'unlock', 'warn', 'warnings', 'setnick'];
+    // Moderation commands require moderator or admin role
     if (moderationCommands.includes(commandName)) {
-        if (MODERATOR_ROLE_IDS.length > 0 && !MODERATOR_ROLE_IDS.some(roleId => memberRoles?.has(roleId))) {
-            if (ADMIN_ROLE_IDS.length === 0 || !ADMIN_ROLE_IDS.some(roleId => memberRoles?.has(roleId))) {
-                message.channel.send('You do not have permission to use this command.');
-                return;
-            }
+        if (!hasModeratorPermission(message.member, message.guild.id, message.author.id, message.guild.ownerId)) {
+            message.channel.send('❌ You do not have permission to use this command. Only moderators, admins, server owner, and bot owner can use moderation commands.');
+            return;
         }
     }
     
     // Admin commands require admin role
-    const adminCommands = ['announce', 'command', 'say', 'clearwarns'];
     if (adminCommands.includes(commandName)) {
-        if (ADMIN_ROLE_IDS.length > 0 && !ADMIN_ROLE_IDS.some(roleId => memberRoles?.has(roleId))) {
-            message.channel.send('You do not have permission to use this command.');
+        if (!hasAdminPermission(message.member, message.guild.id, message.author.id, message.guild.ownerId)) {
+            message.channel.send('❌ You do not have permission to use this command. Only admins, server owner, and bot owner can use admin commands.');
             return;
         }
     }
 
-    // Giveaway commands require allowed roles
+    // Giveaway commands require allowed roles (keeping backward compatibility)
     if (commandName === 'giveaway') {
+        const memberRoles = message.member?.roles.cache;
         if (ALLOWED_ROLE_IDS.length > 0 && !ALLOWED_ROLE_IDS.some(roleId => memberRoles?.has(roleId))) {
-            if (ADMIN_ROLE_IDS.length === 0 || !ADMIN_ROLE_IDS.some(roleId => memberRoles?.has(roleId))) {
-                message.channel.send('You do not have permission to use this command.');
+            if (!hasAdminPermission(message.member, message.guild.id, message.author.id, message.guild.ownerId)) {
+                message.channel.send('❌ You do not have permission to use this command.');
                 return;
             }
         }
@@ -151,33 +150,31 @@ client.on('interactionCreate', async interaction => {
     if (!command) return;
 
     // Check permissions based on command category
-    const memberRoles = interaction.member?.roles;
+    const moderationCommands = ['ban', 'unban', 'kick', 'timeout', 'purge', 'purgeuser', 'slowmode', 'lock', 'unlock', 'warn', 'warnings', 'setnick', 'removecase', 'removewarn'];
+    const adminCommands = ['announce', 'command', 'logs', 'say', 'clearwarns'];
     
-    // Moderation commands require moderator role
-    const moderationCommands = ['ban', 'unban', 'kick', 'timeout', 'purge', 'purgeuser', 'slowmode', 'lock', 'unlock', 'warn', 'warnings', 'setnick'];
+    // Moderation commands require moderator or admin role
     if (moderationCommands.includes(interaction.commandName)) {
-        if (MODERATOR_ROLE_IDS.length > 0 && !MODERATOR_ROLE_IDS.some(roleId => memberRoles?.cache.has(roleId))) {
-            if (ADMIN_ROLE_IDS.length === 0 || !ADMIN_ROLE_IDS.some(roleId => memberRoles?.cache.has(roleId))) {
-                await interaction.reply({ content: 'You do not have permission to use this command.', ephemeral: true });
-                return;
-            }
+        if (!hasModeratorPermission(interaction.member, interaction.guild.id, interaction.user.id, interaction.guild.ownerId)) {
+            await interaction.reply({ content: '❌ You do not have permission to use this command. Only moderators, admins, server owner, and bot owner can use moderation commands.', ephemeral: true });
+            return;
         }
     }
     
     // Admin commands require admin role
-    const adminCommands = ['announce', 'command', 'logs', 'say', 'clearwarns'];
     if (adminCommands.includes(interaction.commandName)) {
-        if (ADMIN_ROLE_IDS.length > 0 && !ADMIN_ROLE_IDS.some(roleId => memberRoles?.cache.has(roleId))) {
-            await interaction.reply({ content: 'You do not have permission to use this command.', ephemeral: true });
+        if (!hasAdminPermission(interaction.member, interaction.guild.id, interaction.user.id, interaction.guild.ownerId)) {
+            await interaction.reply({ content: '❌ You do not have permission to use this command. Only admins, server owner, and bot owner can use admin commands.', ephemeral: true });
             return;
         }
     }
 
-    // Giveaway commands require allowed roles
+    // Giveaway commands require allowed roles (keeping backward compatibility)
     if (interaction.commandName === 'giveaway' || interaction.commandName === 'giveaway-reroll') {
+        const memberRoles = interaction.member?.roles;
         if (ALLOWED_ROLE_IDS.length > 0 && !ALLOWED_ROLE_IDS.some(roleId => memberRoles?.cache.has(roleId))) {
-            if (ADMIN_ROLE_IDS.length === 0 || !ADMIN_ROLE_IDS.some(roleId => memberRoles?.cache.has(roleId))) {
-                await interaction.reply({ content: 'You do not have permission to use this command.', ephemeral: true });
+            if (!hasAdminPermission(interaction.member, interaction.guild.id, interaction.user.id, interaction.guild.ownerId)) {
+                await interaction.reply({ content: '❌ You do not have permission to use this command.', ephemeral: true });
                 return;
             }
         }
