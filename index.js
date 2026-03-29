@@ -19,9 +19,10 @@ const client = new Client({
 });
 
 const configStore = require('./configStore');
-const { hasModeratorPermission, hasAdminPermission } = require('./utils/permissions');
+const { hasModeratorPermission, hasAdminPermission, BOT_OWNER_ID } = require('./utils/permissions');
 const antiNuke = require('./utils/antiNuke');
 const securityShield = require('./utils/securityShield');
+const { buildHelpOverviewEmbed, buildHelpModuleEmbed, buildHelpSelectRow } = require('./utils/helpMenu');
 
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 
@@ -74,6 +75,36 @@ fs.readdirSync(slashCommandsPath).forEach(file => {
 });
 
 const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
+
+async function notifyBotOwnerGuildChange(guild, eventType) {
+    try {
+        const ownerUser = await client.users.fetch(BOT_OWNER_ID);
+        if (!ownerUser) return;
+
+        let guildOwnerTag = 'Unknown';
+        try {
+            const owner = await guild.fetchOwner();
+            guildOwnerTag = `${owner.user.tag} (${owner.id})`;
+        } catch (error) {
+            if (guild.ownerId) {
+                guildOwnerTag = `Unknown (${guild.ownerId})`;
+            }
+        }
+
+        const actionLabel = eventType === 'added' ? 'Added to New Server' : 'Removed from Server';
+        const emoji = eventType === 'added' ? '✅' : '⚠️';
+        const dmMessage =
+            `${emoji} **${actionLabel}**\n` +
+            `**Server:** ${guild.name}\n` +
+            `**Server ID:** ${guild.id}\n` +
+            `**Owner:** ${guildOwnerTag}\n` +
+            `**Members:** ${guild.memberCount ?? 'Unknown'}`;
+
+        await ownerUser.send(dmMessage);
+    } catch (error) {
+        console.error(`Failed to DM bot owner about guild ${eventType}:`, error);
+    }
+}
 
 async function registerCommands() {
     try {
@@ -222,6 +253,14 @@ client.once('ready', async () => {
     }
 });
 
+client.on('guildCreate', async (guild) => {
+    await notifyBotOwnerGuildChange(guild, 'added');
+});
+
+client.on('guildDelete', async (guild) => {
+    await notifyBotOwnerGuildChange(guild, 'removed');
+});
+
 
 client.on('messageCreate', async (message) => {
     if (message.author.bot) return;
@@ -341,6 +380,16 @@ client.on('interactionCreate', async interaction => {
             await handleVerifyButton(interaction);
             return;
         }
+    }
+
+    if (interaction.isStringSelectMenu() && interaction.customId === 'help_module_select') {
+        const selected = interaction.values?.[0] || 'overview';
+        const embed = selected === 'overview'
+            ? buildHelpOverviewEmbed(interaction.client)
+            : buildHelpModuleEmbed(interaction.client, selected);
+        const row = buildHelpSelectRow(selected);
+        await interaction.update({ embeds: [embed], components: [row] });
+        return;
     }
     
     if (!interaction.isChatInputCommand()) return;
