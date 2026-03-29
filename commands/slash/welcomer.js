@@ -45,11 +45,6 @@ module.exports = {
             subcommand
                 .setName('goodbye')
                 .setDescription('Setup goodbye messages')
-                .addChannelOption(option =>
-                    option.setName('channel')
-                        .setDescription('Channel to send goodbye messages (optional, uses welcome channel)')
-                        .addChannelTypes(ChannelType.GuildText)
-                        .setRequired(false))
                 .addStringOption(option =>
                     option.setName('message')
                         .setDescription('Goodbye message')
@@ -57,7 +52,12 @@ module.exports = {
                 .addBooleanOption(option =>
                     option.setName('enabled')
                         .setDescription('Enable goodbye messages?')
-                        .setRequired(true)))
+                        .setRequired(true))
+                .addChannelOption(option =>
+                    option.setName('channel')
+                        .setDescription('Channel to send goodbye messages (optional, uses welcome channel)')
+                        .addChannelTypes(ChannelType.GuildText)
+                        .setRequired(false)))
         .addSubcommand(subcommand =>
             subcommand
                 .setName('embed-customize')
