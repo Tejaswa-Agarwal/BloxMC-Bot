@@ -2,6 +2,7 @@ const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const { sendModLog } = require('../../utils/modLog');
 const { createCase } = require('../../utils/caseManager');
 const EmbedTemplate = require('../../utils/embedTemplate');
+const { hasElevatedOwnership } = require('../../utils/permissions');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -61,9 +62,10 @@ module.exports = {
 
         try {
             const member = await interaction.guild.members.fetch(user.id);
+            const isOwnerBypass = hasElevatedOwnership(interaction.guild.id, interaction.user.id, interaction.guild.ownerId);
 
-            // Check role hierarchy
-            if (member.roles.highest.position >= interaction.member.roles.highest.position) {
+            // Check role hierarchy (skip for bot owner/owner bypass)
+            if (!isOwnerBypass && member.roles.highest.position >= interaction.member.roles.highest.position) {
                 const embed = EmbedTemplate.error('Insufficient Permissions', 'You cannot timeout someone with a higher or equal role.');
                 await interaction.editReply({ embeds: [embed], ephemeral: true });
                 return;
