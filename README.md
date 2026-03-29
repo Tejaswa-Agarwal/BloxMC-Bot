@@ -1,243 +1,422 @@
-# Discord Moderation & Utility Bot
+# BloxMC Discord Bot
 
-A comprehensive Discord bot featuring moderation tools, utility commands, giveaway system, and automated features.
+A comprehensive, enterprise-ready Discord moderation and utility bot with advanced features including tickets, reaction roles, logging, and automod systems.
 
-## 🌟 Features
+## ✨ Key Features
 
-### Moderation Commands
-- **Ban/Unban**: Ban or unban users with reason tracking
-- **Kick**: Remove users from the server
-- **Timeout**: Temporarily mute users (1s - 28 days)
-- **Purge**: Bulk delete messages
-- **Purge User**: Delete specific user's messages
+### 🛡️ Advanced Moderation
+- **Role-Based Permissions**: Configurable mod/admin roles per guild
+- **Comprehensive Mod Tools**: Ban, kick, timeout, warn with case tracking
+- **Warning System**: Track, view, and manage user warnings
+- **Message Management**: Bulk delete with optional user filtering
+- **Channel Controls**: Lock, unlock, slowmode, nickname management
+- **Mod Action Logging**: All actions logged with case IDs
 
-### Utility Commands
-- **Help**: Display all available commands
-- **Ping**: Check bot latency and response time
-- **Avatar**: Display user avatars in high resolution
-- **User Info**: Detailed user information (join date, roles, etc.)
-- **Server Info**: Server statistics and information
-- **Leaderboard**: XP ranking system
+### 🎫 Ticket System
+- **Button-Based Creation**: Users create tickets via button interactions
+- **Ticket Management**: Close, claim, add/remove users
+- **Transcript Generation**: Complete chat history saved on close
+- **Role-Based Support**: Assign support team roles
 
-### Admin Commands
-- **Announce**: Send formatted announcements to any channel
-- **Command Toggle**: Enable/disable commands per server
-- **Logging**: Set channel for command usage logs
+### 🎨 Reaction Roles
+- **Multiple Modes**: Button-based or emoji reactions
+- **Unique/Normal Selection**: Allow multiple roles or restrict to one
+- **Easy Setup**: Configure up to 25 roles per message
+- **Flexible Management**: Add, remove, or delete configurations
 
-### Additional Features
-- **Giveaway System**: Create and manage giveaways
-- **Auto Moderation**: Configurable message filtering
-- **Logging System**: Track all command usage
-- **XP/Leveling**: User activity tracking
+### 📊 Advanced Logging
+- **5 Log Categories**: Messages, members, voice, moderation, server changes
+- **Comprehensive Tracking**: All events logged with detailed embeds
+- **Configurable**: Enable specific log types per guild
+- **Audit Integration**: Captures moderator info from audit logs
 
-## 🚀 Installation
+### 🛡️ Enhanced Automod
+- **6 Filter Types**: Spam, invites, caps, mass mentions, emoji spam, custom words
+- **Smart Detection**: Configurable thresholds and whitelist system
+- **Auto-Punishment**: Warn, timeout, kick, or ban automatically
+- **Mod Exemption**: Moderators bypass all filters
+
+### 🎮 Fun & Engagement
+- **8Ball**: Color-coded fortune telling
+- **Polls**: Duration-based with automatic results
+- **Giveaways**: Button-based entry with automatic winner selection
+
+## 📋 Command List (35 Commands)
+
+### 🛡️ Moderation (13)
+`/ban` `/unban` `/kick` `/timeout` `/warn` `/warnings` `/removewarn` `/clearwarns` `/cases` `/removecase` `/purge` `/slowmode` `/lock` `/unlock` `/setnick`
+
+### 🎫 Tickets (2)
+`/ticket-setup` `/ticket` (create, close, add, remove)
+
+### 🎨 Reaction Roles (1)
+`/reactionrole` (create, add, remove, delete)
+
+### 📊 Logging (1)
+`/logging` (setup, view, disable)
+
+### 🛡️ Automod (1)
+`/automod` (enable, config, antispam, anticaps, punishment, whitelist)
+
+### 🔧 Utility (6)
+`/help` `/ping` `/avatar` `/userinfo` `/serverinfo` `/warnings`
+
+### ⚙️ Admin (6)
+`/announce` `/command` `/logs` `/setuproles` `/setbotname` `/setbotavatar`
+
+### 🎮 Fun (2)
+`/8ball` `/poll`
+
+### 🎉 Giveaways (2)
+`/giveaway` `/giveaway-reroll`
+
+## 🚀 Quick Start
 
 ### Prerequisites
 - Node.js 16.9.0 or higher
-- A Discord Bot Token ([Get one here](https://discord.com/developers/applications))
+- Discord Bot Token ([Create one](https://discord.com/developers/applications))
 
-### Setup Steps
+### Installation
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd discord-moderation-bot
-   ```
+```bash
+# Clone repository
+git clone https://github.com/Tejaswa-Agarwal/KryonMC-Bot.git
+cd BloxMC-Bot
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+# Install dependencies
+npm install
 
-3. **Configure environment variables**
-   
-   Create a `.env` file in the root directory:
-   ```env
-   DISCORD_TOKEN=your_discord_bot_token_here
-   
-   # Role IDs for permissions (comma-separated)
-   ALLOWED_ROLE_IDS=role_id_1,role_id_2
-   MODERATOR_ROLE_IDS=role_id_1,role_id_2
-   ADMIN_ROLE_IDS=role_id_1,role_id_2
-   ```
+# Configure environment
+cp .env.example .env
+# Edit .env with your bot token
 
-4. **Start the bot**
-   ```bash
-   npm start
-   ```
+# Start bot
+npm start
+```
+
+### Configuration
+
+Create a `.env` file:
+```env
+DISCORD_TOKEN=your_bot_token_here
+```
+
+### Initial Setup Commands
+
+Once the bot is online, run these in your Discord server:
+
+```bash
+# Set up mod/admin roles (required for permissions)
+/setuproles
+
+# Optional: Configure advanced features
+/ticket-setup
+/logging setup
+/automod enable
+```
 
 ## 🔑 Permission System
 
-The bot uses a role-based permission system:
+The bot uses a hierarchical permission system:
 
-- **ALLOWED_ROLE_IDS**: Can use giveaway commands
-- **MODERATOR_ROLE_IDS**: Can use moderation commands (ban, kick, timeout, purge)
-- **ADMIN_ROLE_IDS**: Can use admin commands + all moderation commands
+1. **Bot Owner** (hardcoded ID: `1124168034332975204`)
+   - Full access to all commands
+   
+2. **Guild Owner**
+   - Full access to all commands in their server
 
-Users with `ADMIN_ROLE_IDS` have access to all commands.
+3. **Admin Role** (configured via `/setuproles`)
+   - All moderation commands
+   - All admin commands
+   - System configuration
 
-## 📝 Command Usage
+4. **Moderator Role** (configured via `/setuproles`)
+   - Basic moderation (ban, kick, timeout, warn)
+   - Message management (purge)
+   - Channel management (lock, slowmode)
 
-### Prefix Commands (!)
+5. **Everyone**
+   - Utility commands (help, ping, avatar, userinfo, etc.)
+   - Fun commands (8ball, poll)
+   - Self-service (create tickets, view own warnings)
+
+## 🎨 Visual Design
+
+All commands use consistent, modern embed styling:
+
+- ✅ **Success**: Green embeds for successful operations
+- ❌ **Error**: Red embeds for errors with helpful messages
+- ⚠️ **Warning**: Orange embeds for warnings
+- ℹ️ **Info**: Blue embeds for information
+- 🛡️ **Mod Actions**: Dark red embeds with case tracking
+- 👤 **User Info**: Rich user profiles with stats
+- 🏰 **Server Info**: Comprehensive server statistics
+
+## 📖 Usage Examples
+
+### Basic Moderation
 ```bash
-k!ban @user Spamming
-k!kick @user Breaking rules
-k!timeout @user 10m Inappropriate behavior
-k!purge 50
-k!announce #general Important announcement
-k!help
-k!ping
-k!avatar @user
-k!userinfo @user
-k!serverinfo
-```
+# Ban with message deletion
+/ban user:@spammer reason:Advertising delete-days:7
 
-### Slash Commands (/)
-```bash
-/ban user:@user reason:Spamming
-/kick user:@user reason:Breaking rules
-/timeout user:@user duration:10m reason:Inappropriate behavior
+# Timeout with duration
+/timeout user:@rulebreaker duration:1h reason:Spam
+
+# Warn user
+/warn user:@minor_issue reason:Please read the rules
+
+# Bulk delete messages
 /purge amount:50
-/announce channel:#general message:Important announcement
-/help
-/ping
-/avatar user:@user
-/userinfo user:@user
-/serverinfo
 ```
 
-## 🎨 Command Categories
-
-### Moderation
-| Command | Description | Permission Required |
-|---------|-------------|-------------------|
-| ban | Ban a user | Moderator/Admin |
-| unban | Unban a user | Moderator/Admin |
-| kick | Kick a user | Moderator/Admin |
-| timeout | Timeout a user | Moderator/Admin |
-| purge | Delete messages | Moderator/Admin |
-| purgeuser | Delete user messages | Moderator/Admin |
-
-### Utility
-| Command | Description | Permission Required |
-|---------|-------------|-------------------|
-| help | Show commands | Everyone |
-| ping | Check latency | Everyone |
-| avatar | Show avatar | Everyone |
-| userinfo | User details | Everyone |
-| serverinfo | Server stats | Everyone |
-| leaderboard | XP rankings | Everyone |
-
-### Admin
-| Command | Description | Permission Required |
-|---------|-------------|-------------------|
-| announce | Send announcement | Admin |
-| command | Toggle commands | Admin |
-| logs | Set log channel | Admin |
-
-### Giveaways
-| Command | Description | Permission Required |
-|---------|-------------|-------------------|
-| giveaway | Create giveaway | Allowed Roles/Admin |
-| giveaway-reroll | Reroll winner | Allowed Roles/Admin |
-
-## 🛠️ Configuration
-
-### Setting Up Roles
-
-1. Get role IDs by enabling Developer Mode in Discord
-2. Right-click roles → Copy ID
-3. Add role IDs to `.env` file
-
-### Command Toggle
-
-Disable/enable commands per server:
+### Advanced Features
 ```bash
-k!command disable ban
-k!command enable ban
+# Setup ticket system
+/ticket-setup category:Support support-role:@Support
+
+# Create reaction role message
+/reactionrole create mode:button type:unique
+
+# Configure automod
+/automod enable
+/automod antispam threshold:5 action:timeout
+
+# Setup logging
+/logging setup message-log:#logs member-log:#logs
 ```
 
-### Logging Channel
-
-Set up command logging:
+### Admin Commands
 ```bash
-/logs channel:#mod-logs
+# Send announcement
+/announce channel:#general message:Important update! title:Announcement
+
+# Toggle command
+/command disable poll
+
+# Configure bot appearance
+/setbotname name:Support Bot
 ```
 
-## 📦 Project Structure
+## 🔧 Technical Details
 
+### Built With
+- **Discord.js v14**: Modern Discord API library
+- **Node.js**: JavaScript runtime
+- **JSON Storage**: Lightweight persistent storage
+
+### Architecture
 ```
 ├── commands/
-│   ├── prefix/          # Prefix commands (!)
-│   └── slash/           # Slash commands (/)
-├── events/              # Event handlers
-├── config/              # Configuration files
-├── data/                # Data storage
-├── index.js            # Main bot file
-├── package.json        # Dependencies
-└── .env                # Environment variables
+│   ├── slash/          # 35 slash commands
+│   └── prefix/         # 28 prefix commands (k!)
+├── events/             # Event handlers
+│   ├── messageCreate.js
+│   ├── ready.js
+│   └── guildCreate.js
+├── utils/              # Utility modules
+│   ├── embedTemplate.js    # Centralized embed styling
+│   ├── permissions.js      # Permission checking
+│   ├── ticketManager.js    # Ticket system logic
+│   ├── reactionRoleManager.js
+│   ├── logger.js           # Advanced logging
+│   ├── automod.js          # Automod engine
+│   ├── modLog.js           # Mod action logging
+│   └── caseManager.js      # Case tracking
+├── data/               # Data storage
+│   ├── config.json         # Per-guild configuration
+│   ├── warnings.json       # Warning records
+│   ├── cases.json          # Case database
+│   └── transcripts/        # Ticket transcripts
+└── index.js            # Main bot file
 ```
 
-## 🔧 Bot Permissions
-
-The bot requires the following Discord permissions:
+### Required Bot Permissions
+```
 - Read Messages/View Channels
 - Send Messages
 - Embed Links
 - Attach Files
 - Read Message History
 - Add Reactions
+- Manage Messages
+- Manage Channels
+- Manage Roles
 - Ban Members
 - Kick Members
-- Manage Messages
-- Moderate Members (for timeout)
+- Moderate Members (Timeout)
+```
 
-## 📊 Features in Detail
+### Required Intents
+```javascript
+Guilds, GuildMessages, MessageContent, GuildMembers,
+GuildMessageReactions, GuildModeration, GuildVoiceStates
+```
 
-### Timeout Duration Format
+## 🌟 Standout Features
+
+### Multi-Guild Support
+- All configurations stored per-guild
+- No interference between servers
+- Custom bot name/avatar per guild
+
+### Case Tracking
+- Every mod action gets a unique case ID
+- View full case history with `/cases`
+- Remove false cases with `/removecase`
+
+### Smart Automod
+- Intelligent spam detection with time-based tracking
+- Whitelist system for trusted roles
+- Configurable thresholds and punishments
+- Automatic cleanup of tracking data
+
+### Beautiful Embeds
+- Consistent color scheme across all commands
+- Mobile-optimized layouts
+- Rich information display
+- User avatars and thumbnails
+
+## 📊 Command Details
+
+### Duration Format
+Used in timeout, poll, automod:
 - `10s` - 10 seconds
-- `5m` - 5 minutes
-- `1h` - 1 hour
+- `5m` - 5 minutes  
+- `2h` - 2 hours
 - `7d` - 7 days
-- Maximum: 28 days
+- Maximum timeout: 28 days
 
-### Purge Command
-- Deletes up to 100 messages at once
-- Can target specific users
+### Purge Limitations
+- Maximum 100 messages per command
 - Messages older than 14 days cannot be bulk deleted (Discord limitation)
+- Optional user filter to target specific users
 
-### Giveaway System
-- Interactive button-based entries
-- Automatic winner selection
-- Reroll functionality
-- Customizable duration and prizes
+### Ticket Features
+- Automatic numbering (ticket-1, ticket-2, etc.)
+- Permission-based access control
+- Complete chat history transcripts
+- Support team role management
+
+### Reaction Roles
+- **Normal Mode**: Users can select multiple roles
+- **Unique Mode**: Selecting one role removes others
+- **Button Mode**: Clean button interface
+- **Reaction Mode**: Classic emoji reactions
+
+## 🛠️ Development
+
+### Adding New Commands
+1. Create file in `commands/slash/yourcommand.js`
+2. Use `SlashCommandBuilder` for command definition
+3. Implement `execute(interaction)` function
+4. Use `EmbedTemplate` for consistent styling
+5. Check permissions with `hasModeratorPermission()` or `hasAdminPermission()`
+
+### Testing
+```bash
+# Validate syntax
+node -c index.js
+
+# Start with auto-restart
+npm run dev
+```
+
+## 📝 Configuration Files
+
+### data/config.json Structure
+```json
+{
+  "guildId": {
+    "roleConfig": {
+      "moderatorRoleId": "123...",
+      "adminRoleId": "456..."
+    },
+    "ticketConfig": {
+      "enabled": true,
+      "categoryId": "789...",
+      "supportRoleIds": ["111..."],
+      "counter": 5,
+      "openTickets": ["ticket-1", "ticket-2"]
+    },
+    "logConfig": {
+      "messageLog": "channel_id",
+      "memberLog": "channel_id",
+      "voiceLog": "channel_id",
+      "modLog": "channel_id",
+      "serverLog": "channel_id"
+    },
+    "automodConfig": {
+      "enabled": true,
+      "antiSpam": { "enabled": true, "threshold": 5, "punishment": "warn" },
+      "antiInvite": { "enabled": true, "punishment": "timeout" },
+      "antiCaps": { "enabled": true, "threshold": 70 },
+      "antiMassMention": { "enabled": true, "threshold": 5 },
+      "antiEmojiSpam": { "enabled": true, "threshold": 10 },
+      "customWords": { "enabled": false, "words": [] },
+      "whitelistedRoles": ["role_id"]
+    },
+    "reactionRoleConfig": {
+      "messageId": {
+        "roles": { "emoji": "roleId" },
+        "mode": "normal",
+        "type": "button"
+      }
+    }
+  }
+}
+```
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit issues or pull requests.
+Contributions welcome! Please:
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
 ## 📄 License
 
-This project is open source and available under the MIT License.
+This project is open source under the MIT License.
 
-## 💡 Support
+## 💬 Support
 
-For issues or questions:
-1. Check the documentation
-2. Look at existing GitHub issues
-3. Create a new issue with details
+- **Issues**: [GitHub Issues](https://github.com/Tejaswa-Agarwal/KryonMC-Bot/issues)
+- **Questions**: Create a discussion
+- **Documentation**: Check `/help` command in Discord
 
-## 🔄 Version History
+## 🎯 Roadmap
+
+- [ ] Web dashboard for configuration
+- [ ] Database support (PostgreSQL/MongoDB)
+- [ ] Advanced analytics
+- [ ] Custom command creation
+- [ ] Music commands
+- [ ] Economy system
+
+## 📈 Version History
+
+### v3.0.0 (Current)
+- ✅ Complete command modernization
+- ✅ Unified embed template system
+- ✅ Enhanced permission system
+- ✅ Ticket system
+- ✅ Reaction roles
+- ✅ Advanced logging (5 categories)
+- ✅ Enhanced automod (6 filters)
+- ✅ Multi-guild support
+- ✅ Case tracking system
+- ✅ Removed 11 duplicate/unnecessary commands
+- ✅ Updated all commands with consistent embeds
 
 ### v2.0.0
-- Complete refactor from Minecraft bot to general Discord bot
-- Removed all Minecraft-specific features
-- Added comprehensive moderation commands
-- Added utility commands (help, ping, avatar, etc.)
-- Added admin commands (announce, command toggle)
-- Improved permission system
-- Updated to Discord.js v14
+- Complete refactor from Minecraft bot
+- Discord.js v14 migration
+- Added moderation commands
+- Added utility commands
 
 ---
 
-Made with ❤️ for Discord communities
+**Made with ❤️ for Discord communities**
+
+*Bot Owner: 1124168034332975204*

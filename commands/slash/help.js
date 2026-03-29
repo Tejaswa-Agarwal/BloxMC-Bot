@@ -9,7 +9,7 @@ module.exports = {
             .setAuthor({ name: '📚 Command Guide', iconURL: interaction.client.user.displayAvatarURL() })
             .setTitle('Available Bot Commands')
             .setColor('#0099FF')
-            .setDescription('Use `/command` or `k!command` to execute commands\n\n**Quick Links:**\n[Invite Bot](https://discord.com/api/oauth2/authorize) • [Support Server](https://discord.gg/support) • [Documentation](https://docs.example.com)')
+            .setDescription('Use `/command` or `k!command` to execute commands')
             .addFields(
                 { 
                     name: '🛡️ Moderation Commands', 
@@ -18,7 +18,7 @@ module.exports = {
                            '/warn • /warnings • /removewarn\n' +
                            '/cases • /removecase • /clearwarns\n' +
                            '/slowmode • /lock • /unlock\n' +
-                           '/purge • /purgeuser • /setnick\n' +
+                           '/purge • /setnick\n' +
                            '```',
                     inline: false 
                 },
@@ -59,16 +59,15 @@ module.exports = {
                 { 
                     name: '🔧 Utility Commands', 
                     value: '```css\n' +
-                           '/help • /ping • /avatar • /userinfo\n' +
-                           '/serverinfo • /botinfo • /roleinfo\n' +
-                           '/leaderboard • /invite • /mywarns\n' +
+                           '/help • /ping • /avatar\n' +
+                           '/userinfo • /serverinfo • /warnings\n' +
                            '```',
                     inline: false 
                 },
                 { 
                     name: '⚙️ Admin Commands', 
                     value: '```css\n' +
-                           '/announce • /say • /command\n' +
+                           '/announce • /command • /logs\n' +
                            '/setuproles • /setbotname • /setbotavatar\n' +
                            '```',
                     inline: false 
@@ -76,8 +75,7 @@ module.exports = {
                 { 
                     name: '🎮 Fun Commands', 
                     value: '```css\n' +
-                           '/8ball • /coinflip • /roll • /poll\n' +
-                           '/rps • /joke\n' +
+                           '/8ball • /poll\n' +
                            '```',
                     inline: false 
                 },
@@ -91,7 +89,7 @@ module.exports = {
             )
             .setThumbnail(interaction.client.user.displayAvatarURL({ size: 256 }))
             .setFooter({ 
-                text: `${interaction.client.user.username} • 46 Commands Available`, 
+                text: `${interaction.client.user.username} • 35 Commands Available`, 
                 iconURL: interaction.client.user.displayAvatarURL() 
             })
             .setTimestamp();
