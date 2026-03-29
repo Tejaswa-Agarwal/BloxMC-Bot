@@ -35,8 +35,19 @@
     <section class="main">
       <section class="hero">
         <h1><%= guild.name %> Configuration</h1>
-        <p>Module tabs, live saves, and premium controls.</p>
+        <p>Module tabs, analytics, and live activity.</p>
         <div class="actions"><a class="btn secondary" href="/dashboard">Back</a></div>
+      </section>
+
+      <section class="grid cols-3">
+        <div class="card"><h3>Total Cases</h3><div class="metric" id="stat-cases">0</div></div>
+        <div class="card"><h3>Total Warnings</h3><div class="metric" id="stat-warnings">0</div></div>
+        <div class="card"><h3>Open Tickets</h3><div class="metric" id="stat-tickets">0</div></div>
+      </section>
+
+      <section class="card">
+        <h2>Moderation Trend</h2>
+        <div id="case-chart" class="grid cols-3"></div>
       </section>
 
       <section class="card">
@@ -52,15 +63,15 @@
 
       <section class="card tab-panel active" data-tab-group="modules" data-tab-panel="roles">
         <h2>Role Configuration</h2>
-        <label>Moderator Role ID</label><input id="moderatorRoleId" type="text" placeholder="123456789012345678" />
-        <label>Admin Role ID</label><input id="adminRoleId" type="text" placeholder="123456789012345678" />
+        <label>Moderator Role</label><select id="moderatorRoleId"></select>
+        <label>Admin Role</label><select id="adminRoleId"></select>
         <button class="btn" onclick="handleSave(this,'roleConfig',{ moderatorRoleId: val('moderatorRoleId'), adminRoleId: val('adminRoleId') })">Save Roles</button>
       </section>
 
       <section class="card tab-panel" data-tab-group="modules" data-tab-panel="welcomer">
         <h2>Welcomer</h2>
         <label>Enabled</label><select id="welcomerEnabled"><option value="true">true</option><option value="false">false</option></select>
-        <label>Channel ID</label><input id="welcomerChannelId" type="text" placeholder="123456789012345678" />
+        <label>Channel</label><select id="welcomerChannelId"></select>
         <label>Message</label><textarea id="welcomerMessage" rows="3" placeholder="Welcome {user} to {server}!"></textarea>
         <button class="btn" onclick="handleSave(this,'welcomerConfig',{ enabled: boolVal('welcomerEnabled'), channelId: val('welcomerChannelId'), message: val('welcomerMessage') })">Save Welcomer</button>
       </section>
@@ -68,7 +79,7 @@
       <section class="card tab-panel" data-tab-group="modules" data-tab-panel="starboard">
         <h2>Starboard</h2>
         <label>Enabled</label><select id="starboardEnabled"><option value="true">true</option><option value="false">false</option></select>
-        <label>Channel ID</label><input id="starboardChannelId" type="text" placeholder="123456789012345678" />
+        <label>Channel</label><select id="starboardChannelId"></select>
         <label>Threshold</label><input id="starboardThreshold" type="number" min="1" max="20" value="3" />
         <button class="btn" onclick="handleSave(this,'starboardConfig',{ enabled: boolVal('starboardEnabled'), channelId: val('starboardChannelId'), threshold: numVal('starboardThreshold') })">Save Starboard</button>
       </section>
@@ -81,9 +92,14 @@
 
       <section class="card tab-panel" data-tab-group="modules" data-tab-panel="logging">
         <h2>Logging</h2>
-        <label>Moderation Log Channel ID</label><input id="modLog" type="text" placeholder="123456789012345678" />
-        <label>Message Log Channel ID</label><input id="messageLog" type="text" placeholder="123456789012345678" />
+        <label>Moderation Log Channel</label><select id="modLog"></select>
+        <label>Message Log Channel</label><select id="messageLog"></select>
         <button class="btn" onclick="handleSave(this,'logConfig',{ modLog: val('modLog'), messageLog: val('messageLog') })">Save Logging</button>
+      </section>
+
+      <section class="card">
+        <h2>Recent Activity</h2>
+        <div id="activity-feed" class="grid"></div>
       </section>
     </section>
   </main>
@@ -93,9 +109,17 @@
   <script>
     const guildId = '<%= guild.id %>';
 
-    function val(id) { return document.getElementById(id).value.trim(); }
+    function val(id) { return document.getElementById(id).value; }
     function boolVal(id) { return document.getElementById(id).value === 'true'; }
     function numVal(id) { return Number(document.getElementById(id).value); }
+
+    function fillSelect(id, options, selected) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const base = '<option value="">Not set</option>';
+      el.innerHTML = base + options.map(o => `<option value="${o.id}">${o.name}</option>`).join('');
+      if (selected) el.value = selected;
+    }
 
     async function handleSave(btn, section, data) {
       window.axionSetSaving(btn, true);
@@ -115,37 +139,71 @@
       }
     }
 
-    async function loadConfig() {
+    function renderChart(counts) {
+      const chart = document.getElementById('case-chart');
+      const keys = ['warn', 'timeout', 'kick', 'ban', 'other'];
+      const max = Math.max(1, ...keys.map(k => counts[k] || 0));
+      chart.innerHTML = keys.map(k => {
+        const v = counts[k] || 0;
+        const pct = Math.round((v / max) * 100);
+        return `<div class="card"><h3>${k}</h3><div class="muted">${v}</div><div style="height:8px;background:#0b1220;border:1px solid #334155;border-radius:999px;margin-top:8px;"><div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--brand),var(--brand-2));border-radius:999px;"></div></div></div>`;
+      }).join('');
+    }
+
+    function renderActivity(activity) {
+      const box = document.getElementById('activity-feed');
+      if (!activity.length) {
+        box.innerHTML = '<div class="card"><p class="muted">No recent moderation activity.</p></div>';
+        return;
+      }
+      box.innerHTML = activity.map(a => {
+        const when = a.timestamp ? new Date(a.timestamp).toLocaleString() : 'Unknown';
+        return `<div class="card"><h3>${a.action.toUpperCase()} • ${a.type}</h3><p class="muted">User: ${a.userId} • Mod: ${a.moderator || 'Unknown'}</p><p>${a.reason || 'No reason'}</p><p class="muted">${when}</p></div>`;
+      }).join('');
+    }
+
+    async function loadAll() {
       try {
-        const res = await fetch(`/api/guild/${guildId}/config`);
-        const cfg = await res.json();
-        if (cfg.roleConfig) {
-          document.getElementById('moderatorRoleId').value = cfg.roleConfig.moderatorRoleId || '';
-          document.getElementById('adminRoleId').value = cfg.roleConfig.adminRoleId || '';
-        }
-        if (cfg.welcomerConfig) {
-          document.getElementById('welcomerEnabled').value = String(!!cfg.welcomerConfig.enabled);
-          document.getElementById('welcomerChannelId').value = cfg.welcomerConfig.channelId || '';
-          document.getElementById('welcomerMessage').value = cfg.welcomerConfig.message || '';
-        }
-        if (cfg.starboardConfig) {
-          document.getElementById('starboardEnabled').value = String(!!cfg.starboardConfig.enabled);
-          document.getElementById('starboardChannelId').value = cfg.starboardConfig.channelId || '';
-          document.getElementById('starboardThreshold').value = cfg.starboardConfig.threshold || 3;
-        }
-        if (cfg.automodConfig) {
-          document.getElementById('automodEnabled').value = String(!!cfg.automodConfig.enabled);
-        }
-        if (cfg.logConfig) {
-          document.getElementById('modLog').value = cfg.logConfig.modLog || '';
-          document.getElementById('messageLog').value = cfg.logConfig.messageLog || '';
-        }
+        const [metaRes, cfgRes, statsRes, activityRes] = await Promise.all([
+          fetch(`/api/guild/${guildId}/meta`),
+          fetch(`/api/guild/${guildId}/config`),
+          fetch(`/api/guild/${guildId}/stats`),
+          fetch(`/api/guild/${guildId}/activity?limit=12`),
+        ]);
+
+        const meta = await metaRes.json();
+        const cfg = await cfgRes.json();
+        const stats = await statsRes.json();
+        const activity = await activityRes.json();
+
+        const roles = meta.roles || [];
+        const channels = meta.channels || [];
+
+        fillSelect('moderatorRoleId', roles, cfg.roleConfig?.moderatorRoleId || '');
+        fillSelect('adminRoleId', roles, cfg.roleConfig?.adminRoleId || '');
+        fillSelect('welcomerChannelId', channels, cfg.welcomerConfig?.channelId || '');
+        fillSelect('starboardChannelId', channels, cfg.starboardConfig?.channelId || '');
+        fillSelect('modLog', channels, cfg.logConfig?.modLog || '');
+        fillSelect('messageLog', channels, cfg.logConfig?.messageLog || '');
+
+        document.getElementById('welcomerEnabled').value = String(!!cfg.welcomerConfig?.enabled);
+        document.getElementById('welcomerMessage').value = cfg.welcomerConfig?.message || '';
+        document.getElementById('starboardEnabled').value = String(!!cfg.starboardConfig?.enabled);
+        document.getElementById('starboardThreshold').value = cfg.starboardConfig?.threshold || 3;
+        document.getElementById('automodEnabled').value = String(!!cfg.automodConfig?.enabled);
+
+        document.getElementById('stat-cases').textContent = stats.caseCount || 0;
+        document.getElementById('stat-warnings').textContent = stats.warningCount || 0;
+        document.getElementById('stat-tickets').textContent = stats.openTickets || 0;
+
+        renderChart(stats.caseTypeCounts || {});
+        renderActivity(activity.activity || []);
       } catch (_err) {
-        window.axionToast('Failed to load configuration', 'warning');
+        window.axionToast('Failed to load dashboard data', 'warning');
       }
     }
 
-    loadConfig();
+    loadAll();
   </script>
 </body>
 </html>

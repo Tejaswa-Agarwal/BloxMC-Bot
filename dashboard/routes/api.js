@@ -4,16 +4,28 @@ const fs = require('fs');
 const path = require('path');
 
 const configPath = path.join(__dirname, '..', '..', 'data', 'config.json');
+const casesPath = path.join(__dirname, '..', '..', 'data', 'cases.json');
+const warningsPath = path.join(__dirname, '..', '..', 'data', 'warnings.json');
+
+function readJson(file, fallback = {}) {
+  if (!fs.existsSync(file)) return fallback;
+  try {
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch {
+    return fallback;
+  }
+}
+
+function writeJson(file, value) {
+  fs.writeFileSync(file, JSON.stringify(value, null, 2));
+}
 
 function getConfig() {
-  if (fs.existsSync(configPath)) {
-    return JSON.parse(fs.readFileSync(configPath, 'utf8'));
-  }
-  return {};
+  return readJson(configPath, {});
 }
 
 function saveConfig(config) {
-  fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+  writeJson(configPath, config);
 }
 
 function canManageGuild(user, guildId) {
@@ -85,6 +97,127 @@ router.post('/guild/:guildId/config', async (req, res) => {
 
   saveConfig(config);
   res.json({ success: true, config: config[guildId] });
+});
+
+router.get('/guild/:guildId/meta', async (req, res) => {
+  const { guildId } = req.params;
+  if (!canManageGuild(req.user, guildId)) {
+    res.status(403).json({ error: 'No permission' });
+    return;
+  }
+
+  try {
+    const client = req.app.locals.client;
+    const guild = client.guilds.cache.get(guildId);
+    if (!guild) {
+      res.status(404).json({ error: 'Guild not found' });
+      return;
+    }
+
+    const roles = guild.roles.cache
+      .filter(r => r.id !== guild.id)
+      .sort((a, b) => b.position - a.position)
+      .map(r => ({ id: r.id, name: r.name }));
+
+    const channels = guild.channels.cache
+      .filter(c => c.isTextBased && c.isTextBased() && c.type === 0)
+      .sort((a, b) => a.position - b.position)
+      .map(c => ({ id: c.id, name: c.name }));
+
+    res.json({
+      guild: {
+        id: guild.id,
+        name: guild.name,
+        memberCount: guild.memberCount,
+      },
+      roles,
+      channels,
+    });
+  } catch (error) {
+    console.error('Dashboard meta error:', error);
+    res.status(500).json({ error: 'Failed to load guild metadata' });
+  }
+});
+
+router.get('/guild/:guildId/stats', async (req, res) => {
+  const { guildId } = req.params;
+  if (!canManageGuild(req.user, guildId)) {
+    res.status(403).json({ error: 'No permission' });
+    return;
+  }
+
+  const cases = readJson(casesPath, {});
+  const warnings = readJson(warningsPath, {});
+  const config = getConfig();
+
+  const guildCases = cases[guildId] || {};
+  const guildWarnings = warnings[guildId] || {};
+  const openTickets = config[guildId]?.ticketConfig?.openTickets || [];
+
+  let caseCount = 0;
+  const caseTypeCounts = { warn: 0, timeout: 0, kick: 0, ban: 0, other: 0 };
+  Object.values(guildCases).forEach(userCases => {
+    userCases.forEach(c => {
+      caseCount += 1;
+      if (caseTypeCounts[c.type] !== undefined) caseTypeCounts[c.type] += 1;
+      else caseTypeCounts.other += 1;
+    });
+  });
+
+  let warningCount = 0;
+  Object.values(guildWarnings).forEach(userWarnings => { warningCount += userWarnings.length; });
+
+  res.json({
+    caseCount,
+    warningCount,
+    openTickets: openTickets.length,
+    caseTypeCounts,
+  });
+});
+
+router.get('/guild/:guildId/activity', async (req, res) => {
+  const { guildId } = req.params;
+  if (!canManageGuild(req.user, guildId)) {
+    res.status(403).json({ error: 'No permission' });
+    return;
+  }
+
+  const limit = Math.min(Number(req.query.limit || 20), 50);
+  const cases = readJson(casesPath, {});
+  const warnings = readJson(warningsPath, {});
+
+  const items = [];
+
+  const guildCases = cases[guildId] || {};
+  Object.entries(guildCases).forEach(([userId, userCases]) => {
+    userCases.forEach(c => {
+      items.push({
+        type: 'case',
+        action: c.type,
+        userId,
+        moderator: c.moderator,
+        reason: c.reason,
+        timestamp: c.timestamp,
+      });
+    });
+  });
+
+  const guildWarnings = warnings[guildId] || {};
+  Object.entries(guildWarnings).forEach(([userId, userWarnings]) => {
+    userWarnings.forEach(w => {
+      items.push({
+        type: 'warning',
+        action: 'warn',
+        userId,
+        moderator: w.moderator,
+        reason: w.reason,
+        timestamp: w.timestamp,
+      });
+    });
+  });
+
+  items.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+  res.json({ activity: items.slice(0, limit) });
 });
 
 module.exports = router;
