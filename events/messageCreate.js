@@ -68,6 +68,12 @@ module.exports = (client) => {
     client.on('messageCreate', async (message) => {
         if (message.author.bot) return;
 
+        // New enhanced automod system
+        const automod = require('../utils/automod');
+        const handled = await automod.checkMessage(message);
+        if (handled) return; // Message was handled by automod
+
+        // Legacy automod (still runs if not handled by new system)
         if (moduleStatus.automod) {
             // Bad word filtering
             const messageContent = message.content.toLowerCase();

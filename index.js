@@ -6,8 +6,16 @@ const messageCreateEvent = require('./events/messageCreate');
 const { REST, Routes } = require('discord.js');
 
 const client = new Client({
-    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMembers],
-    partials: [Partials.Channel],
+    intents: [
+        GatewayIntentBits.Guilds, 
+        GatewayIntentBits.GuildMessages, 
+        GatewayIntentBits.MessageContent, 
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildMessageReactions,
+        GatewayIntentBits.GuildModeration,
+        GatewayIntentBits.GuildVoiceStates
+    ],
+    partials: [Partials.Channel, Partials.Message, Partials.Reaction],
 });
 
 const configStore = require('./configStore');
@@ -88,6 +96,82 @@ client.once('ready', async () => {
     await registerCommands();
     // Register messageCreate event for automod
     messageCreateEvent(client);
+    
+    // Register logging events
+    const logger = require('./utils/logger');
+    
+    client.on('messageDelete', async (message) => {
+        if (message.partial || message.author.bot) return;
+        await logger.logMessageDelete(message);
+    });
+    
+    client.on('messageUpdate', async (oldMessage, newMessage) => {
+        if (oldMessage.partial || newMessage.partial || newMessage.author.bot) return;
+        await logger.logMessageEdit(oldMessage, newMessage);
+    });
+    
+    client.on('guildMemberAdd', async (member) => {
+        await logger.logMemberJoin(member);
+    });
+    
+    client.on('guildMemberRemove', async (member) => {
+        await logger.logMemberLeave(member);
+    });
+    
+    client.on('guildMemberUpdate', async (oldMember, newMember) => {
+        await logger.logMemberUpdate(oldMember, newMember);
+    });
+    
+    client.on('voiceStateUpdate', async (oldState, newState) => {
+        await logger.logVoiceStateUpdate(oldState, newState);
+    });
+    
+    client.on('channelUpdate', async (oldChannel, newChannel) => {
+        await logger.logChannelUpdate(oldChannel, newChannel);
+    });
+    
+    client.on('guildBanAdd', async (ban) => {
+        await logger.logBan(ban);
+    });
+    
+    client.on('guildBanRemove', async (ban) => {
+        await logger.logUnban(ban);
+    });
+    
+    // Register reaction role events
+    const reactionRoleManager = require('./utils/reactionRoleManager');
+    
+    client.on('messageReactionAdd', async (reaction, user) => {
+        if (user.bot) return;
+        
+        // Fetch partial messages
+        if (reaction.partial) {
+            try {
+                await reaction.fetch();
+            } catch (error) {
+                console.error('Error fetching reaction:', error);
+                return;
+            }
+        }
+        
+        await reactionRoleManager.handleReactionAdd(reaction, user, reaction.message.guild);
+    });
+    
+    client.on('messageReactionRemove', async (reaction, user) => {
+        if (user.bot) return;
+        
+        // Fetch partial messages
+        if (reaction.partial) {
+            try {
+                await reaction.fetch();
+            } catch (error) {
+                console.error('Error fetching reaction:', error);
+                return;
+            }
+        }
+        
+        await reactionRoleManager.handleReactionRemove(reaction, user, reaction.message.guild);
+    });
 });
 
 
@@ -144,6 +228,59 @@ client.on('messageCreate', async (message) => {
 
 
 client.on('interactionCreate', async interaction => {
+    // Handle button interactions for tickets
+    if (interaction.isButton()) {
+        const { createTicket, closeTicket, claimTicket } = require('./utils/ticketManager');
+        const { handleButtonRole } = require('./utils/reactionRoleManager');
+        
+        if (interaction.customId === 'create_ticket') {
+            await interaction.deferReply({ ephemeral: true });
+            const result = await createTicket(interaction.guild, interaction.user);
+            
+            if (result.success) {
+                await interaction.editReply({ 
+                    content: `✅ Ticket created! ${result.channel}`,
+                    ephemeral: true 
+                });
+            } else {
+                await interaction.editReply({ 
+                    content: `❌ ${result.error}`,
+                    ephemeral: true 
+                });
+            }
+            return;
+        }
+        
+        if (interaction.customId.startsWith('ticket_close_')) {
+            await interaction.deferReply();
+            const result = await closeTicket(interaction.channel, interaction.user);
+            
+            if (!result.success) {
+                await interaction.editReply({ content: `❌ ${result.error}` });
+            }
+            return;
+        }
+        
+        if (interaction.customId.startsWith('ticket_claim_')) {
+            await interaction.deferReply();
+            const result = await claimTicket(interaction.channel, interaction.user);
+            
+            if (!result.success) {
+                await interaction.editReply({ content: `❌ ${result.error}`, ephemeral: true });
+            } else {
+                await interaction.editReply({ content: '✅ Ticket claimed!' });
+            }
+            return;
+        }
+        
+        // Handle reaction role buttons
+        if (interaction.customId.startsWith('role_')) {
+            const roleId = interaction.customId.split('_')[1];
+            await handleButtonRole(interaction, roleId);
+            return;
+        }
+    }
+    
     if (!interaction.isChatInputCommand()) return;
 
     const command = client.slashCommands.get(interaction.commandName);
