@@ -32,7 +32,7 @@
         <p class="muted">${g.botPresent?'Dashboard access is ready. Open settings to configure moderation, automod, and modules.':'Invite Axion first, then return here to configure your server.'}</p>
         <div class="server-card-actions">
           ${g.botPresent?`<a class="btn" href="/server/${g.id}">Open Panel</a>`:'<span class="pill">Not connected yet</span>'}
-          <a class="btn ghost" target="_blank" rel="noopener" href="${g.inviteUrl || '#'}">Invite Axion</a>
+          ${g.botPresent ? '' : `<a class="btn ghost" target="_blank" rel="noopener" href="${g.inviteUrl || '#'}">Invite Axion</a>`}
         </div>
       </article>
     `).join('');

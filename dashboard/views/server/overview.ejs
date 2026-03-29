@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= guild.name %> · Axion</title>
   <link rel="icon" type="image/png" href="/img/axion-logo.png">
-  <link rel="stylesheet" href="/css/main.css?v=20260329-7">
+  <link rel="stylesheet" href="/css/main.css?v=20260329-9">
 </head>
 <body>
   <main class="container layout">
@@ -55,6 +55,11 @@
       </section>
 
       <section class="card">
+        <h2>Server Health</h2>
+        <div id="health-summary" class="grid cols-3"></div>
+      </section>
+
+      <section class="card">
         <h2>Moderation Trend</h2>
         <div id="case-chart" class="grid cols-3"></div>
       </section>
@@ -66,7 +71,9 @@
           <button class="tab-btn" data-tab-group="modules" data-tab-btn="welcomer">Welcomer</button>
           <button class="tab-btn" data-tab-group="modules" data-tab-btn="starboard">Starboard</button>
           <button class="tab-btn" data-tab-group="modules" data-tab-btn="automod">Automod</button>
+          <button class="tab-btn" data-tab-group="modules" data-tab-btn="antinuke">Anti-Nuke</button>
           <button class="tab-btn" data-tab-group="modules" data-tab-btn="logging">Logging</button>
+          <button class="tab-btn" data-tab-group="modules" data-tab-btn="systems">Systems</button>
         </div>
       </section>
 
@@ -96,7 +103,43 @@
       <section class="card tab-panel" data-tab-group="modules" data-tab-panel="automod">
         <h2>Automod</h2>
         <label>Enabled</label><select id="automodEnabled"><option value="true">true</option><option value="false">false</option></select>
-        <button class="btn" onclick="handleSave(this,'automodConfig',{ enabled: boolVal('automodEnabled') })">Save Automod</button>
+        <label>Punishment</label>
+        <select id="automodPunishment">
+          <option value="warn">warn</option>
+          <option value="timeout">timeout</option>
+          <option value="kick">kick</option>
+          <option value="ban">ban</option>
+        </select>
+        <label>Anti Spam</label><select id="automodAntiSpam"><option value="true">true</option><option value="false">false</option></select>
+        <label>Max Messages (window)</label><input id="automodMaxMessages" type="number" min="2" max="20" value="5" />
+        <label>Spam Window Seconds</label><input id="automodTimeWindow" type="number" min="2" max="60" value="5" />
+        <label>Anti Invite</label><select id="automodAntiInvite"><option value="true">true</option><option value="false">false</option></select>
+        <label>Anti Caps</label><select id="automodAntiCaps"><option value="true">true</option><option value="false">false</option></select>
+        <label>Caps Threshold %</label><input id="automodCapsThreshold" type="number" min="40" max="100" value="70" />
+        <label>Anti Mass Mention</label><select id="automodAntiMention"><option value="true">true</option><option value="false">false</option></select>
+        <label>Max Mentions</label><input id="automodMaxMentions" type="number" min="2" max="20" value="5" />
+        <label>Anti Emoji Spam</label><select id="automodAntiEmoji"><option value="true">true</option><option value="false">false</option></select>
+        <label>Max Emojis</label><input id="automodMaxEmojis" type="number" min="2" max="30" value="10" />
+        <button class="btn" onclick="saveAutomod(this)">Save Automod</button>
+      </section>
+
+      <section class="card tab-panel" data-tab-group="modules" data-tab-panel="antinuke">
+        <h2>Anti-Nuke</h2>
+        <p class="muted">Protect against destructive raid/admin abuse like rapid role/channel creation/deletion.</p>
+        <label>Enabled</label><select id="antiNukeEnabled"><option value="true">true</option><option value="false">false</option></select>
+        <label>Action Threshold</label><input id="antiNukeThreshold" type="number" min="2" max="20" value="3" />
+        <label>Window Seconds</label><input id="antiNukeWindow" type="number" min="5" max="120" value="10" />
+        <label>Response Action</label>
+        <select id="antiNukeAction">
+          <option value="remove_roles">remove_roles</option>
+          <option value="kick">kick</option>
+          <option value="ban">ban</option>
+        </select>
+        <label>Whitelisted User IDs (comma separated)</label>
+        <textarea id="antiNukeUsers" rows="2" placeholder="1234567890, 0987654321"></textarea>
+        <label>Whitelisted Role IDs (comma separated)</label>
+        <textarea id="antiNukeRoles" rows="2" placeholder="1111111111, 2222222222"></textarea>
+        <button class="btn" onclick="saveAntiNuke(this)">Save Anti-Nuke</button>
       </section>
 
       <section class="card tab-panel" data-tab-group="modules" data-tab-panel="logging">
@@ -106,6 +149,15 @@
         <button class="btn" onclick="handleSave(this,'logConfig',{ modLog: val('modLog'), messageLog: val('messageLog') })">Save Logging</button>
       </section>
 
+      <section class="card tab-panel" data-tab-group="modules" data-tab-panel="systems">
+        <h2>Systems Control</h2>
+        <p class="muted">Enable core systems from one place, then fine-tune them in their dedicated commands.</p>
+        <label>Suggestions</label><select id="suggestionsEnabled"><option value="true">true</option><option value="false">false</option></select>
+        <label>Verification</label><select id="verificationEnabled"><option value="true">true</option><option value="false">false</option></select>
+        <label>Ticket System</label><select id="ticketEnabled"><option value="true">true</option><option value="false">false</option></select>
+        <button class="btn" onclick="saveSystems(this)">Save Systems</button>
+      </section>
+
       <section class="card">
         <h2>Recent Activity</h2>
         <div id="activity-feed" class="grid"></div>
@@ -113,14 +165,23 @@
     </section>
   </main>
 
-  <script src="/js/theme.js?v=20260329-7"></script>
-  <script src="/js/ui.js?v=20260329-7"></script>
+  <script src="/js/theme.js?v=20260329-9"></script>
+  <script src="/js/ui.js?v=20260329-9"></script>
   <script>
     const guildId = '<%= guild.id %>';
 
     function val(id) { return document.getElementById(id).value; }
     function boolVal(id) { return document.getElementById(id).value === 'true'; }
     function numVal(id) { return Number(document.getElementById(id).value); }
+    function csvToArray(id) {
+      return val(id).split(',').map(v => v.trim()).filter(Boolean);
+    }
+    function arrayToCsv(list) {
+      return Array.isArray(list) ? list.join(', ') : '';
+    }
+    function healthPill(label, ok) {
+      return `<div class="card mini-health ${ok ? 'ok' : 'warning'}"><h3>${label}</h3><p class="muted">${ok ? 'Configured' : 'Needs setup'}</p></div>`;
+    }
 
     function fillSelect(id, options, selected) {
       const el = document.getElementById(id);
@@ -148,6 +209,88 @@
       }
     }
 
+    async function saveSystems(btn) {
+      window.axionSetSaving(btn, true);
+      try {
+        const payloads = [
+          fetch(`/api/guild/${guildId}/config`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              section: 'suggestionConfig',
+              data: { enabled: boolVal('suggestionsEnabled') },
+            }),
+          }),
+          fetch(`/api/guild/${guildId}/config`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              section: 'verifyConfig',
+              data: { enabled: boolVal('verificationEnabled') },
+            }),
+          }),
+          fetch(`/api/guild/${guildId}/config`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              section: 'ticketConfig',
+              data: { enabled: boolVal('ticketEnabled') },
+            }),
+          }),
+        ];
+
+        const results = await Promise.all(payloads);
+        const bad = results.find(r => !r.ok);
+        if (bad) throw new Error('Could not save one or more systems');
+        window.axionToast('Systems updated', 'ok');
+      } catch (err) {
+        window.axionToast(err.message, 'danger');
+      } finally {
+        window.axionSetSaving(btn, false);
+      }
+    }
+
+    async function saveAutomod(btn) {
+      const payload = {
+        enabled: boolVal('automodEnabled'),
+        punishment: val('automodPunishment'),
+        antiSpam: {
+          enabled: boolVal('automodAntiSpam'),
+          maxMessages: numVal('automodMaxMessages'),
+          timeWindow: numVal('automodTimeWindow') * 1000,
+        },
+        antiInvite: {
+          enabled: boolVal('automodAntiInvite'),
+        },
+        antiCaps: {
+          enabled: boolVal('automodAntiCaps'),
+          threshold: numVal('automodCapsThreshold'),
+          minLength: 10,
+        },
+        antiMassMention: {
+          enabled: boolVal('automodAntiMention'),
+          max: numVal('automodMaxMentions'),
+        },
+        antiEmoji: {
+          enabled: boolVal('automodAntiEmoji'),
+          max: numVal('automodMaxEmojis'),
+        },
+      };
+      await handleSave(btn, 'automodConfig', payload);
+    }
+
+    async function saveAntiNuke(btn) {
+      const payload = {
+        enabled: boolVal('antiNukeEnabled'),
+        threshold: numVal('antiNukeThreshold'),
+        intervalMs: numVal('antiNukeWindow') * 1000,
+        action: val('antiNukeAction'),
+        whitelistedUsers: csvToArray('antiNukeUsers'),
+        whitelistedRoles: csvToArray('antiNukeRoles'),
+      };
+      await handleSave(btn, 'antiNukeConfig', payload);
+    }
+
     function renderChart(counts) {
       const chart = document.getElementById('case-chart');
       const keys = ['warn', 'timeout', 'kick', 'ban', 'other'];
@@ -171,19 +314,36 @@
       }).join('');
     }
 
+    function renderHealth(summary) {
+      const box = document.getElementById('health-summary');
+      if (!box) return;
+      const modules = summary.modules || {};
+      box.innerHTML = [
+        healthPill('Staff Roles', !!(summary.setup?.moderatorRoleId && summary.setup?.adminRoleId)),
+        healthPill('Automod', !!modules.automodEnabled),
+        healthPill('Anti-Nuke', !!modules.antiNukeEnabled),
+        healthPill('Logging', !!modules.loggingEnabled),
+        healthPill('Tickets', !!modules.ticketEnabled),
+        healthPill('Suggestions', !!modules.suggestionEnabled),
+        healthPill('Verification', !!modules.verificationEnabled),
+      ].join('');
+    }
+
     async function loadAll() {
       try {
-        const [metaRes, cfgRes, statsRes, activityRes] = await Promise.all([
+        const [metaRes, cfgRes, statsRes, activityRes, summaryRes] = await Promise.all([
           fetch(`/api/guild/${guildId}/meta`),
           fetch(`/api/guild/${guildId}/config`),
           fetch(`/api/guild/${guildId}/stats`),
           fetch(`/api/guild/${guildId}/activity?limit=12`),
+          fetch(`/api/guild/${guildId}/summary`),
         ]);
 
         const meta = await metaRes.json();
         const cfg = await cfgRes.json();
         const stats = await statsRes.json();
         const activity = await activityRes.json();
+        const summary = await summaryRes.json();
 
         const roles = meta.roles || [];
         const channels = meta.channels || [];
@@ -200,6 +360,26 @@
         document.getElementById('starboardEnabled').value = String(!!cfg.starboardConfig?.enabled);
         document.getElementById('starboardThreshold').value = cfg.starboardConfig?.threshold || 3;
         document.getElementById('automodEnabled').value = String(!!cfg.automodConfig?.enabled);
+        document.getElementById('automodPunishment').value = cfg.automodConfig?.punishment || 'warn';
+        document.getElementById('automodAntiSpam').value = String(!!cfg.automodConfig?.antiSpam?.enabled);
+        document.getElementById('automodMaxMessages').value = cfg.automodConfig?.antiSpam?.maxMessages || 5;
+        document.getElementById('automodTimeWindow').value = Math.round((cfg.automodConfig?.antiSpam?.timeWindow || 5000) / 1000);
+        document.getElementById('automodAntiInvite').value = String(!!cfg.automodConfig?.antiInvite?.enabled);
+        document.getElementById('automodAntiCaps').value = String(!!cfg.automodConfig?.antiCaps?.enabled);
+        document.getElementById('automodCapsThreshold').value = cfg.automodConfig?.antiCaps?.threshold || 70;
+        document.getElementById('automodAntiMention').value = String(!!cfg.automodConfig?.antiMassMention?.enabled);
+        document.getElementById('automodMaxMentions').value = cfg.automodConfig?.antiMassMention?.max || 5;
+        document.getElementById('automodAntiEmoji').value = String(!!cfg.automodConfig?.antiEmoji?.enabled);
+        document.getElementById('automodMaxEmojis').value = cfg.automodConfig?.antiEmoji?.max || 10;
+        document.getElementById('antiNukeEnabled').value = String(!!cfg.antiNukeConfig?.enabled);
+        document.getElementById('antiNukeThreshold').value = cfg.antiNukeConfig?.threshold || 3;
+        document.getElementById('antiNukeWindow').value = Math.round((cfg.antiNukeConfig?.intervalMs || 10000) / 1000);
+        document.getElementById('antiNukeAction').value = cfg.antiNukeConfig?.action || 'remove_roles';
+        document.getElementById('antiNukeUsers').value = arrayToCsv(cfg.antiNukeConfig?.whitelistedUsers || []);
+        document.getElementById('antiNukeRoles').value = arrayToCsv(cfg.antiNukeConfig?.whitelistedRoles || []);
+        document.getElementById('suggestionsEnabled').value = String(!!cfg.suggestionConfig?.enabled);
+        document.getElementById('verificationEnabled').value = String(!!cfg.verifyConfig?.enabled);
+        document.getElementById('ticketEnabled').value = String(!!cfg.ticketConfig?.enabled);
 
         document.getElementById('stat-cases').textContent = stats.caseCount || 0;
         document.getElementById('stat-warnings').textContent = stats.warningCount || 0;
@@ -207,6 +387,7 @@
 
         renderChart(stats.caseTypeCounts || {});
         renderActivity(activity.activity || []);
+        renderHealth(summary || {});
       } catch (_err) {
         window.axionToast('Failed to load dashboard data', 'warning');
       }

@@ -6,6 +6,7 @@ const path = require('path');
 const configPath = path.join(__dirname, '..', '..', 'data', 'config.json');
 const casesPath = path.join(__dirname, '..', '..', 'data', 'cases.json');
 const warningsPath = path.join(__dirname, '..', '..', 'data', 'warnings.json');
+const transcriptsPath = path.join(__dirname, '..', '..', 'data', 'transcripts');
 const BOT_INVITE_PERMISSIONS = '8';
 
 function readJson(file, fallback = {}) {
@@ -41,6 +42,43 @@ function getBotInviteUrl(client, guildId) {
 function canManageGuild(user, guildId) {
   if (process.env.DASHBOARD_NO_AUTH === 'true') return true;
   return user?.guilds?.some(g => g.id === guildId && (g.permissions & 0x8) === 0x8);
+}
+
+const topLevelGuildSections = new Set(['roleConfig', 'logConfig', 'automodConfig', 'ticketConfig', 'reactionRoleConfig', 'antiNukeConfig']);
+
+function getGuildConfigSnapshot(allConfig, guildId) {
+  const guildConfig = allConfig[guildId] || {};
+  return {
+    ...guildConfig,
+    roleConfig: (allConfig.roleConfig || {})[guildId] || guildConfig.roleConfig || {},
+    logConfig: (allConfig.logConfig || {})[guildId] || guildConfig.logConfig || {},
+    automodConfig: (allConfig.automodConfig || {})[guildId] || guildConfig.automodConfig || {},
+    antiNukeConfig: (allConfig.antiNukeConfig || {})[guildId] || guildConfig.antiNukeConfig || {},
+    ticketConfig: (allConfig.ticketConfig || {})[guildId] || guildConfig.ticketConfig || {},
+    reactionRoleConfig: (allConfig.reactionRoleConfig || {})[guildId] || guildConfig.reactionRoleConfig || {},
+  };
+}
+
+function saveGuildSection(allConfig, guildId, section, data) {
+  if (topLevelGuildSections.has(section)) {
+    if (!allConfig[section] || typeof allConfig[section] !== 'object') {
+      allConfig[section] = {};
+    }
+    allConfig[section][guildId] = {
+      ...(allConfig[section][guildId] || {}),
+      ...data,
+    };
+    return;
+  }
+
+  if (!allConfig[guildId] || typeof allConfig[guildId] !== 'object') {
+    allConfig[guildId] = {};
+  }
+
+  allConfig[guildId][section] = {
+    ...(allConfig[guildId][section] || {}),
+    ...data,
+  };
 }
 
 router.get('/guilds', async (req, res) => {
@@ -83,7 +121,7 @@ router.get('/guild/:guildId/config', async (req, res) => {
   }
 
   const config = getConfig();
-  res.json(config[guildId] || {});
+  res.json(getGuildConfigSnapshot(config, guildId));
 });
 
 router.post('/guild/:guildId/config', async (req, res) => {
@@ -101,14 +139,10 @@ router.post('/guild/:guildId/config', async (req, res) => {
   }
 
   const config = getConfig();
-  if (!config[guildId]) config[guildId] = {};
-  config[guildId][section] = {
-    ...(config[guildId][section] || {}),
-    ...data,
-  };
+  saveGuildSection(config, guildId, section, data);
 
   saveConfig(config);
-  res.json({ success: true, config: config[guildId] });
+  res.json({ success: true, config: getGuildConfigSnapshot(config, guildId) });
 });
 
 router.get('/guild/:guildId/meta', async (req, res) => {
@@ -185,6 +219,83 @@ router.get('/guild/:guildId/stats', async (req, res) => {
     openTickets: openTickets.length,
     caseTypeCounts,
   });
+});
+
+router.get('/guild/:guildId/summary', async (req, res) => {
+  const { guildId } = req.params;
+  if (!canManageGuild(req.user, guildId)) {
+    res.status(403).json({ error: 'No permission' });
+    return;
+  }
+
+  try {
+    const client = req.app.locals.client;
+    const guild = client.guilds.cache.get(guildId);
+    if (!guild) {
+      res.status(404).json({ error: 'Guild not found' });
+      return;
+    }
+
+    const config = getConfig();
+    const guildConfig = getGuildConfigSnapshot(config, guildId);
+    const automodConfig = guildConfig.automodConfig || {};
+    const antiNukeConfig = guildConfig.antiNukeConfig || {};
+
+    const textChannels = guild.channels.cache.filter(c => c.isTextBased && c.isTextBased() && c.type === 0).size;
+    const voiceChannels = guild.channels.cache.filter(c => c.type === 2).size;
+    const categories = guild.channels.cache.filter(c => c.type === 4).size;
+
+    const ticketCfg = guildConfig.ticketConfig || {};
+    const suggestionCfg = guildConfig.suggestionConfig || {};
+    const verifyCfg = guildConfig.verifyConfig || {};
+    const roleCfg = guildConfig.roleConfig || {};
+    const logCfg = guildConfig.logConfig || {};
+
+    const transcriptCount = fs.existsSync(transcriptsPath)
+      ? fs.readdirSync(transcriptsPath).filter(file => file.includes(`-${guildId}.txt`)).length
+      : 0;
+
+    res.json({
+      guild: {
+        id: guild.id,
+        name: guild.name,
+        memberCount: guild.memberCount,
+        textChannels,
+        voiceChannels,
+        categories,
+      },
+      modules: {
+        ticketEnabled: !!ticketCfg.enabled,
+        suggestionEnabled: !!suggestionCfg.enabled,
+        verificationEnabled: !!verifyCfg.enabled,
+        automodEnabled: !!automodConfig.enabled,
+        antiNukeEnabled: !!antiNukeConfig.enabled,
+        loggingEnabled: !!(logCfg.modLog || logCfg.messageLog || logCfg.memberLog || logCfg.voiceLog || logCfg.serverLog),
+        welcomerEnabled: !!guildConfig.welcomerConfig?.enabled,
+        starboardEnabled: !!guildConfig.starboardConfig?.enabled,
+      },
+      setup: {
+        moderatorRoleId: roleCfg.moderatorRoleId || null,
+        adminRoleId: roleCfg.adminRoleId || null,
+        ticketPanelChannelId: ticketCfg.panelChannelId || null,
+        ticketCategoryId: ticketCfg.categoryId || null,
+        ticketSupportRoleCount: Array.isArray(ticketCfg.supportRoleIds) ? ticketCfg.supportRoleIds.length : 0,
+        suggestionChannelId: suggestionCfg.channelId || null,
+        verificationRoleId: verifyCfg.roleId || null,
+        automodWordCount: Array.isArray(automodConfig.customWords) ? automodConfig.customWords.length : 0,
+        automodWhitelistChannelCount: Array.isArray(automodConfig.whitelistedChannels) ? automodConfig.whitelistedChannels.length : 0,
+        automodWhitelistRoleCount: Array.isArray(automodConfig.whitelistedRoles) ? automodConfig.whitelistedRoles.length : 0,
+        antiNukeThreshold: antiNukeConfig.threshold || 3,
+        antiNukeWindowSec: antiNukeConfig.intervalMs ? Math.round(antiNukeConfig.intervalMs / 1000) : 10,
+        antiNukeWhitelistUsers: Array.isArray(antiNukeConfig.whitelistedUsers) ? antiNukeConfig.whitelistedUsers.length : 0,
+        antiNukeWhitelistRoles: Array.isArray(antiNukeConfig.whitelistedRoles) ? antiNukeConfig.whitelistedRoles.length : 0,
+        transcriptCount,
+      },
+    });
+  } catch (error) {
+    console.error('Dashboard guild summary error:', error);
+    res.status(500).json({ error: 'Failed to load guild summary' });
+  }
 });
 
 router.get('/guild/:guildId/activity', async (req, res) => {

@@ -69,7 +69,7 @@ module.exports = {
                     value: '```css\n' +
                            '/announce • /command • /logs\n' +
                            '/setuproles • /setbotname • /setbotavatar\n' +
-                           '/welcomer • /starboard • /verify • /tags • /notes\n' +
+                           '/welcomer • /starboard • /verify • /tags • /notes • /audit • /antinuke\n' +
                            '```',
                     inline: false 
                 },
@@ -90,7 +90,7 @@ module.exports = {
             )
             .setThumbnail(interaction.client.user.displayAvatarURL({ size: 256 }))
             .setFooter({ 
-                text: `${interaction.client.user.username} • 41 Commands Available`, 
+                text: `${interaction.client.user.username} • 44 Commands Available`, 
                 iconURL: interaction.client.user.displayAvatarURL() 
             })
             .setTimestamp();
