@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= guild.name %> · Axion</title>
   <link rel="icon" type="image/png" href="/img/axion-logo.png">
-  <link rel="stylesheet" href="/css/main.css?v=20260329-9">
+  <link rel="stylesheet" href="/css/main.css?v=20260329-11">
 </head>
 <body>
   <main class="container layout">
@@ -26,6 +26,7 @@
       </nav>
       <div class="theme-picker">
         <button class="theme-btn" data-theme="default">Default</button>
+        <button class="theme-btn" data-theme="wick">Wick</button>
         <button class="theme-btn" data-theme="neon">Neon</button>
         <button class="theme-btn" data-theme="sunset">Sunset</button>
         <button class="theme-btn" data-theme="emerald">Emerald</button>
@@ -68,10 +69,12 @@
         <h2>Modules</h2>
         <div class="tab-row" data-tab-group="modules">
           <button class="tab-btn active" data-tab-group="modules" data-tab-btn="roles">Roles</button>
+          <button class="tab-btn" data-tab-group="modules" data-tab-btn="owners">Extra Owners</button>
           <button class="tab-btn" data-tab-group="modules" data-tab-btn="welcomer">Welcomer</button>
           <button class="tab-btn" data-tab-group="modules" data-tab-btn="starboard">Starboard</button>
           <button class="tab-btn" data-tab-group="modules" data-tab-btn="automod">Automod</button>
           <button class="tab-btn" data-tab-group="modules" data-tab-btn="antinuke">Anti-Nuke</button>
+          <button class="tab-btn" data-tab-group="modules" data-tab-btn="security">Security Shield</button>
           <button class="tab-btn" data-tab-group="modules" data-tab-btn="logging">Logging</button>
           <button class="tab-btn" data-tab-group="modules" data-tab-btn="systems">Systems</button>
         </div>
@@ -82,6 +85,14 @@
         <label>Moderator Role</label><select id="moderatorRoleId"></select>
         <label>Admin Role</label><select id="adminRoleId"></select>
         <button class="btn" onclick="handleSave(this,'roleConfig',{ moderatorRoleId: val('moderatorRoleId'), adminRoleId: val('adminRoleId') })">Save Roles</button>
+      </section>
+
+      <section class="card tab-panel" data-tab-group="modules" data-tab-panel="owners">
+        <h2>Extra Owners</h2>
+        <p class="muted">Extra owners get owner-level Axion permissions in this guild.</p>
+        <label>User IDs (comma separated)</label>
+        <textarea id="extraOwnersUserIds" rows="3" placeholder="123456789012345678, 987654321098765432"></textarea>
+        <button class="btn" onclick="saveExtraOwners(this)">Save Extra Owners</button>
       </section>
 
       <section class="card tab-panel" data-tab-group="modules" data-tab-panel="welcomer">
@@ -142,6 +153,30 @@
         <button class="btn" onclick="saveAntiNuke(this)">Save Anti-Nuke</button>
       </section>
 
+      <section class="card tab-panel" data-tab-group="modules" data-tab-panel="security">
+        <h2>Security Shield (Wick-style)</h2>
+        <p class="muted">Join raid and alt-account protection with automatic actions.</p>
+        <label>Enabled</label><select id="securityEnabled"><option value="true">true</option><option value="false">false</option></select>
+        <label>Anti-Alt Enabled</label><select id="securityAntiAltEnabled"><option value="true">true</option><option value="false">false</option></select>
+        <label>Minimum Account Age (days)</label><input id="securityMinAge" type="number" min="1" max="90" value="3" />
+        <label>Anti-Alt Action</label>
+        <select id="securityAntiAltAction">
+          <option value="kick">kick</option>
+          <option value="quarantine">quarantine</option>
+          <option value="alert">alert</option>
+        </select>
+        <label>Quarantine Role ID</label><input id="securityQuarantineRoleId" type="text" placeholder="123456789012345678" />
+        <label>Join Guard Enabled</label><select id="securityJoinGuardEnabled"><option value="true">true</option><option value="false">false</option></select>
+        <label>Join Threshold</label><input id="securityJoinThreshold" type="number" min="3" max="50" value="8" />
+        <label>Join Window Seconds</label><input id="securityJoinWindow" type="number" min="5" max="120" value="15" />
+        <label>Join Guard Action</label>
+        <select id="securityJoinAction">
+          <option value="alert">alert</option>
+          <option value="kick">kick</option>
+        </select>
+        <button class="btn" onclick="saveSecurityShield(this)">Save Security Shield</button>
+      </section>
+
       <section class="card tab-panel" data-tab-group="modules" data-tab-panel="logging">
         <h2>Logging</h2>
         <label>Moderation Log Channel</label><select id="modLog"></select>
@@ -165,8 +200,8 @@
     </section>
   </main>
 
-  <script src="/js/theme.js?v=20260329-9"></script>
-  <script src="/js/ui.js?v=20260329-9"></script>
+  <script src="/js/theme.js?v=20260329-12"></script>
+  <script src="/js/ui.js?v=20260329-12"></script>
   <script>
     const guildId = '<%= guild.id %>';
 
@@ -291,6 +326,33 @@
       await handleSave(btn, 'antiNukeConfig', payload);
     }
 
+    async function saveSecurityShield(btn) {
+      const quarantineRoleId = val('securityQuarantineRoleId').trim();
+      const payload = {
+        enabled: boolVal('securityEnabled'),
+        quarantineRoleId: quarantineRoleId || null,
+        antiAlt: {
+          enabled: boolVal('securityAntiAltEnabled'),
+          minAccountAgeDays: numVal('securityMinAge'),
+          action: val('securityAntiAltAction'),
+        },
+        joinGuard: {
+          enabled: boolVal('securityJoinGuardEnabled'),
+          maxJoins: numVal('securityJoinThreshold'),
+          windowMs: numVal('securityJoinWindow') * 1000,
+          action: val('securityJoinAction'),
+        },
+      };
+      await handleSave(btn, 'securityShieldConfig', payload);
+    }
+
+    async function saveExtraOwners(btn) {
+      const payload = {
+        userIds: csvToArray('extraOwnersUserIds'),
+      };
+      await handleSave(btn, 'extraOwnersConfig', payload);
+    }
+
     function renderChart(counts) {
       const chart = document.getElementById('case-chart');
       const keys = ['warn', 'timeout', 'kick', 'ban', 'other'];
@@ -322,6 +384,8 @@
         healthPill('Staff Roles', !!(summary.setup?.moderatorRoleId && summary.setup?.adminRoleId)),
         healthPill('Automod', !!modules.automodEnabled),
         healthPill('Anti-Nuke', !!modules.antiNukeEnabled),
+        healthPill('Security Shield', !!modules.securityShieldEnabled),
+        healthPill('Extra Owners', !!modules.extraOwnersEnabled),
         healthPill('Logging', !!modules.loggingEnabled),
         healthPill('Tickets', !!modules.ticketEnabled),
         healthPill('Suggestions', !!modules.suggestionEnabled),
@@ -377,6 +441,16 @@
         document.getElementById('antiNukeAction').value = cfg.antiNukeConfig?.action || 'remove_roles';
         document.getElementById('antiNukeUsers').value = arrayToCsv(cfg.antiNukeConfig?.whitelistedUsers || []);
         document.getElementById('antiNukeRoles').value = arrayToCsv(cfg.antiNukeConfig?.whitelistedRoles || []);
+        document.getElementById('securityEnabled').value = String(!!cfg.securityShieldConfig?.enabled);
+        document.getElementById('securityAntiAltEnabled').value = String(!!cfg.securityShieldConfig?.antiAlt?.enabled);
+        document.getElementById('securityMinAge').value = cfg.securityShieldConfig?.antiAlt?.minAccountAgeDays || 3;
+        document.getElementById('securityAntiAltAction').value = cfg.securityShieldConfig?.antiAlt?.action || 'kick';
+        document.getElementById('securityQuarantineRoleId').value = cfg.securityShieldConfig?.quarantineRoleId || '';
+        document.getElementById('securityJoinGuardEnabled').value = String(!!cfg.securityShieldConfig?.joinGuard?.enabled);
+        document.getElementById('securityJoinThreshold').value = cfg.securityShieldConfig?.joinGuard?.maxJoins || 8;
+        document.getElementById('securityJoinWindow').value = Math.round((cfg.securityShieldConfig?.joinGuard?.windowMs || 15000) / 1000);
+        document.getElementById('securityJoinAction').value = cfg.securityShieldConfig?.joinGuard?.action || 'alert';
+        document.getElementById('extraOwnersUserIds').value = arrayToCsv(cfg.extraOwnersConfig?.userIds || []);
         document.getElementById('suggestionsEnabled').value = String(!!cfg.suggestionConfig?.enabled);
         document.getElementById('verificationEnabled').value = String(!!cfg.verifyConfig?.enabled);
         document.getElementById('ticketEnabled').value = String(!!cfg.ticketConfig?.enabled);

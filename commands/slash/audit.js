@@ -31,6 +31,7 @@ module.exports = {
         const roleConfig = (configStore.get('roleConfig') || {})[guildId] || {};
         const automodConfig = (configStore.get('automodConfig') || {})[guildId] || {};
         const antiNukeConfig = (configStore.get('antiNukeConfig') || {})[guildId] || {};
+        const securityShieldConfig = (configStore.get('securityShieldConfig') || {})[guildId] || {};
         const ticketConfig = (configStore.get('ticketConfig') || {})[guildId] || {};
         const logConfig = (configStore.get('logConfig') || {})[guildId] || {};
 
@@ -38,6 +39,7 @@ module.exports = {
             { label: 'Staff roles configured', ok: !!(roleConfig.moderatorRoleId && roleConfig.adminRoleId) },
             { label: 'Automod enabled', ok: !!automodConfig.enabled },
             { label: 'Anti-nuke enabled', ok: !!antiNukeConfig.enabled },
+            { label: 'Security shield enabled', ok: !!securityShieldConfig.enabled },
             { label: 'Logging configured', ok: !!(logConfig.modLog || logConfig.messageLog || logConfig.memberLog) },
             { label: 'Ticket system enabled', ok: !!ticketConfig.enabled },
             { label: 'Welcomer enabled', ok: !!guildRoot.welcomerConfig?.enabled },
@@ -53,6 +55,7 @@ module.exports = {
         if (!roleConfig.moderatorRoleId || !roleConfig.adminRoleId) recommendations.push('Run `/setuproles` to lock moderation/admin command access.');
         if (!automodConfig.enabled) recommendations.push('Enable `/automod enable` for baseline anti-spam and abuse protection.');
         if (!antiNukeConfig.enabled) recommendations.push('Enable `/antinuke enable` to protect against channel/role nukes.');
+        if (!securityShieldConfig.enabled) recommendations.push('Enable `/security enable` for anti-alt and join-raid protection.');
         if (!logConfig.modLog) recommendations.push('Set `/logging setup` so moderation actions are tracked.');
         if (!ticketConfig.enabled) recommendations.push('Set up `/ticket-setup` for member support flow.');
 

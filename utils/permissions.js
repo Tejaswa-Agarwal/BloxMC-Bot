@@ -2,6 +2,18 @@ const configStore = require('../configStore');
 
 const BOT_OWNER_ID = '1124168034332975204';
 
+function getExtraOwnerIds(guildId) {
+    const config = configStore.get('extraOwnersConfig') || {};
+    const entry = config[guildId] || {};
+    return Array.isArray(entry.userIds) ? entry.userIds : [];
+}
+
+function hasElevatedOwnership(guildId, userId, guildOwnerId) {
+    if (userId === BOT_OWNER_ID || userId === guildOwnerId) return true;
+    const extraOwners = getExtraOwnerIds(guildId);
+    return extraOwners.includes(userId);
+}
+
 /**
  * Check if a user has permission to use moderation commands
  * @param {object} member - Discord member object
@@ -11,8 +23,8 @@ const BOT_OWNER_ID = '1124168034332975204';
  * @returns {boolean} - Whether the user has permission
  */
 function hasModeratorPermission(member, guildId, userId, guildOwnerId) {
-    // Bot owner and guild owner always have permission
-    if (userId === BOT_OWNER_ID || userId === guildOwnerId) {
+    // Bot owner, guild owner, and extra owners always have permission
+    if (hasElevatedOwnership(guildId, userId, guildOwnerId)) {
         return true;
     }
 
@@ -40,8 +52,8 @@ function hasModeratorPermission(member, guildId, userId, guildOwnerId) {
  * @returns {boolean} - Whether the user has permission
  */
 function hasAdminPermission(member, guildId, userId, guildOwnerId) {
-    // Bot owner and guild owner always have permission
-    if (userId === BOT_OWNER_ID || userId === guildOwnerId) {
+    // Bot owner, guild owner, and extra owners always have permission
+    if (hasElevatedOwnership(guildId, userId, guildOwnerId)) {
         return true;
     }
 
@@ -62,5 +74,7 @@ function hasAdminPermission(member, guildId, userId, guildOwnerId) {
 module.exports = {
     hasModeratorPermission,
     hasAdminPermission,
-    BOT_OWNER_ID
+    BOT_OWNER_ID,
+    getExtraOwnerIds,
+    hasElevatedOwnership,
 };

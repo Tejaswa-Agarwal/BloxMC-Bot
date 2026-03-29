@@ -21,6 +21,7 @@ const client = new Client({
 const configStore = require('./configStore');
 const { hasModeratorPermission, hasAdminPermission } = require('./utils/permissions');
 const antiNuke = require('./utils/antiNuke');
+const securityShield = require('./utils/securityShield');
 
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 
@@ -118,6 +119,7 @@ client.once('ready', async () => {
     });
     
     client.on('guildMemberAdd', async (member) => {
+        await securityShield.handleMemberJoin(member);
         await logger.logMemberJoin(member);
         // Welcomer system
         const welcomer = require('./utils/welcomer');
@@ -232,7 +234,7 @@ client.on('messageCreate', async (message) => {
 
     // Check permissions based on command category
     const moderationCommands = ['ban', 'unban', 'kick', 'timeout', 'purge', 'slowmode', 'lock', 'unlock', 'warn', 'warnings', 'setnick', 'removecase', 'removewarn', 'snipe', 'editsnipe'];
-    const adminCommands = ['announce', 'command', 'clearwarns', 'logging', 'setuproles', 'setbotname', 'setbotavatar', 'ticket-setup', 'reactionrole', 'automod', 'starboard', 'welcomer', 'verify', 'tags', 'audit', 'antinuke'];
+    const adminCommands = ['announce', 'command', 'clearwarns', 'logging', 'setuproles', 'setbotname', 'setbotavatar', 'ticket-setup', 'reactionrole', 'automod', 'starboard', 'welcomer', 'verify', 'tags', 'audit', 'antinuke', 'security', 'extraowners'];
     
     // Moderation commands require moderator or admin role
     if (moderationCommands.includes(commandName)) {
@@ -345,7 +347,7 @@ client.on('interactionCreate', async interaction => {
 
     // Check permissions based on command category
     const moderationCommands = ['ban', 'unban', 'kick', 'timeout', 'purge', 'slowmode', 'lock', 'unlock', 'warn', 'warnings', 'setnick', 'removecase', 'removewarn', 'snipe', 'editsnipe'];
-    const adminCommands = ['announce', 'command', 'logs', 'clearwarns', 'logging', 'setuproles', 'setbotname', 'setbotavatar', 'ticket-setup', 'reactionrole', 'automod', 'starboard', 'welcomer', 'verify', 'tags', 'audit', 'antinuke'];
+    const adminCommands = ['announce', 'command', 'logs', 'clearwarns', 'logging', 'setuproles', 'setbotname', 'setbotavatar', 'ticket-setup', 'reactionrole', 'automod', 'starboard', 'welcomer', 'verify', 'tags', 'audit', 'antinuke', 'security', 'extraowners'];
     
     // Moderation commands require moderator or admin role
     if (moderationCommands.includes(interaction.commandName)) {

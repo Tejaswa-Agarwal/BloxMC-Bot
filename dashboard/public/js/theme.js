@@ -3,8 +3,8 @@
   const root = document.body;
 
   function applyTheme(theme) {
-    const safe = ['default', 'neon', 'sunset', 'emerald'].includes(theme) ? theme : 'default';
-    root.classList.remove('theme-default', 'theme-neon', 'theme-sunset', 'theme-emerald');
+    const safe = ['default', 'neon', 'sunset', 'emerald', 'wick'].includes(theme) ? theme : 'default';
+    root.classList.remove('theme-default', 'theme-neon', 'theme-sunset', 'theme-emerald', 'theme-wick');
     root.classList.add(`theme-${safe}`);
     localStorage.setItem(KEY, safe);
 

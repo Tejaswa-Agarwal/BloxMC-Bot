@@ -44,7 +44,7 @@ function canManageGuild(user, guildId) {
   return user?.guilds?.some(g => g.id === guildId && (g.permissions & 0x8) === 0x8);
 }
 
-const topLevelGuildSections = new Set(['roleConfig', 'logConfig', 'automodConfig', 'ticketConfig', 'reactionRoleConfig', 'antiNukeConfig']);
+const topLevelGuildSections = new Set(['roleConfig', 'logConfig', 'automodConfig', 'ticketConfig', 'reactionRoleConfig', 'antiNukeConfig', 'securityShieldConfig', 'extraOwnersConfig']);
 
 function getGuildConfigSnapshot(allConfig, guildId) {
   const guildConfig = allConfig[guildId] || {};
@@ -54,6 +54,8 @@ function getGuildConfigSnapshot(allConfig, guildId) {
     logConfig: (allConfig.logConfig || {})[guildId] || guildConfig.logConfig || {},
     automodConfig: (allConfig.automodConfig || {})[guildId] || guildConfig.automodConfig || {},
     antiNukeConfig: (allConfig.antiNukeConfig || {})[guildId] || guildConfig.antiNukeConfig || {},
+    securityShieldConfig: (allConfig.securityShieldConfig || {})[guildId] || guildConfig.securityShieldConfig || {},
+    extraOwnersConfig: (allConfig.extraOwnersConfig || {})[guildId] || guildConfig.extraOwnersConfig || {},
     ticketConfig: (allConfig.ticketConfig || {})[guildId] || guildConfig.ticketConfig || {},
     reactionRoleConfig: (allConfig.reactionRoleConfig || {})[guildId] || guildConfig.reactionRoleConfig || {},
   };
@@ -240,6 +242,8 @@ router.get('/guild/:guildId/summary', async (req, res) => {
     const guildConfig = getGuildConfigSnapshot(config, guildId);
     const automodConfig = guildConfig.automodConfig || {};
     const antiNukeConfig = guildConfig.antiNukeConfig || {};
+    const securityShieldConfig = guildConfig.securityShieldConfig || {};
+    const extraOwnersConfig = guildConfig.extraOwnersConfig || {};
 
     const textChannels = guild.channels.cache.filter(c => c.isTextBased && c.isTextBased() && c.type === 0).size;
     const voiceChannels = guild.channels.cache.filter(c => c.type === 2).size;
@@ -270,6 +274,8 @@ router.get('/guild/:guildId/summary', async (req, res) => {
         verificationEnabled: !!verifyCfg.enabled,
         automodEnabled: !!automodConfig.enabled,
         antiNukeEnabled: !!antiNukeConfig.enabled,
+        securityShieldEnabled: !!securityShieldConfig.enabled,
+        extraOwnersEnabled: Array.isArray(extraOwnersConfig.userIds) && extraOwnersConfig.userIds.length > 0,
         loggingEnabled: !!(logCfg.modLog || logCfg.messageLog || logCfg.memberLog || logCfg.voiceLog || logCfg.serverLog),
         welcomerEnabled: !!guildConfig.welcomerConfig?.enabled,
         starboardEnabled: !!guildConfig.starboardConfig?.enabled,
@@ -289,6 +295,10 @@ router.get('/guild/:guildId/summary', async (req, res) => {
         antiNukeWindowSec: antiNukeConfig.intervalMs ? Math.round(antiNukeConfig.intervalMs / 1000) : 10,
         antiNukeWhitelistUsers: Array.isArray(antiNukeConfig.whitelistedUsers) ? antiNukeConfig.whitelistedUsers.length : 0,
         antiNukeWhitelistRoles: Array.isArray(antiNukeConfig.whitelistedRoles) ? antiNukeConfig.whitelistedRoles.length : 0,
+        securityMinAccountAge: securityShieldConfig.antiAlt?.minAccountAgeDays || 3,
+        securityJoinThreshold: securityShieldConfig.joinGuard?.maxJoins || 8,
+        securityJoinWindowSec: securityShieldConfig.joinGuard?.windowMs ? Math.round(securityShieldConfig.joinGuard.windowMs / 1000) : 15,
+        extraOwnerCount: Array.isArray(extraOwnersConfig.userIds) ? extraOwnersConfig.userIds.length : 0,
         transcriptCount,
       },
     });

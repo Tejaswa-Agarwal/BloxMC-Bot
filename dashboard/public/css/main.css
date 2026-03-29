@@ -364,6 +364,40 @@ pre { white-space: pre-wrap; background: #0b1220; border: 1px solid #1f2d49; pad
 body.theme-neon { --brand: #00e5ff; --brand-2: #7c4dff; --border: #1d4b5a; }
 body.theme-sunset { --brand: #f97316; --brand-2: #ec4899; --border: #5a2d26; }
 body.theme-emerald { --brand: #10b981; --brand-2: #06b6d4; --border: #224a45; }
+body.theme-wick {
+  --bg: #05070d;
+  --bg-2: #0b101a;
+  --card: #101826;
+  --card-2: #0c1320;
+  --text: #dbe7ff;
+  --muted: #92a7c9;
+  --brand: #4da3ff;
+  --brand-2: #7a5cff;
+  --border: #22334f;
+}
+
+body.theme-wick .hero {
+  background: linear-gradient(135deg, rgba(77,163,255,.2), rgba(122,92,255,.18));
+}
+
+body.theme-wick .card {
+  border-color: #2d4266;
+  box-shadow: 0 16px 30px rgba(7, 14, 28, .5);
+}
+
+body.theme-wick .tab-btn.active {
+  border-color: #4da3ff;
+  background: #13233b;
+}
+
+body.theme-wick .pill.ok {
+  border-color: #2f5f9a;
+  color: #9fd0ff;
+}
+
+body.theme-wick .btn {
+  background: linear-gradient(90deg, #3b82f6, #6366f1) !important;
+}
 
 @media (max-width: 980px) {
   .layout { grid-template-columns: 1fr; }
