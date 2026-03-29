@@ -236,7 +236,7 @@ client.on('messageCreate', async (message) => {
     if (!command) return;
 
     // Check permissions based on command category
-    const moderationCommands = ['ban', 'unban', 'kick', 'timeout', 'purge', 'slowmode', 'lock', 'unlock', 'warn', 'warnings', 'setnick', 'removecase', 'removewarn', 'snipe', 'editsnipe'];
+    const moderationCommands = ['ban', 'unban', 'kick', 'timeout', 'purge', 'slowmode', 'lock', 'unlock', 'warn', 'warnings', 'setnick', 'removecase', 'removewarn', 'snipe', 'editsnipe', 'el', 'eu'];
     const adminCommands = ['announce', 'command', 'clearwarns', 'logging', 'setuproles', 'setbotname', 'setbotavatar', 'ticket-setup', 'reactionrole', 'automod', 'starboard', 'welcomer', 'verify', 'tags', 'audit', 'antinuke', 'security', 'extraowners'];
     
     // Moderation commands require moderator or admin role
